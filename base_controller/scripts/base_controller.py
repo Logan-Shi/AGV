@@ -90,15 +90,15 @@ class base_controller():
         # self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60
         current_speed = msg.data * 0.09 * 2 * np.pi / 60
         current_steering_angle = (self.servoCmdMsg.data - 90) / 2
-        current_angular_velocity = current_speed * tan(current_steering_angle) / self.wheelbase
+        current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase
 
         # dt used to calc odom
-        dt = rospy.Time.now() - self.last_time
         self.last_time = rospy.Time.now()
+        dt = (rospy.Time.now() - self.last_time).to_sec()
 
         # spd orthogonal decomposition
-        x_dot = current_speed * cos(yaw)
-        y_dot = current_speed * sin(yaw)
+        x_dot = current_speed * math.cos(self.yaw)
+        y_dot = current_speed * math.sin(self.yaw)
 
         # odom calculation
         self.x += x_dot * dt
@@ -111,10 +111,10 @@ class base_controller():
         self.odomMsg.child_frame_id = 'base_link'
 
         # Position
-        self.odomMsg.pose.pose.x = self.x
-        self.odomMsg.pose.pose.y = self.y
-        self.odomMsg.pose.pose.orientation.z = sin(self.yaw/2)
-        self.odomMsg.pose.pose.orientation.w = cos(self.yaw/2)
+        self.odomMsg.pose.pose.position.x = self.x
+        self.odomMsg.pose.pose.position.y = self.y
+        self.odomMsg.pose.pose.orientation.z = math.sin(self.yaw/2)
+        self.odomMsg.pose.pose.orientation.w = math.cos(self.yaw/2)
         
         # Velocity
         self.odomMsg.twist.twist.linear.x = current_speed
@@ -122,7 +122,7 @@ class base_controller():
         self.odomPub.publish(self.odomMsg)
         self.tfPub.sendTransform(
             (self.x, self.y, 0),
-            tf.transformations.quaternion_from_euler(0, 0, msg.yaw),
+            tf.transformations.quaternion_from_euler(0, 0, self.yaw),
             self.last_time,
             'odom',
             'base_link'
