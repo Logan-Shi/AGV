@@ -5,6 +5,7 @@ ackermann autonomous driving
 
 ```
 sudo apt-get install ros-kinetic-ros-controllers
+sudo apt-get install ros-kinetic-gazebo-ros-control
 ```
 
 ## Bringup
