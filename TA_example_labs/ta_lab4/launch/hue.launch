@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="ta_lab4" type="hue_picker.py" name="Hue_Picker" />
+</launch>
