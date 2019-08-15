@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+    <param name="port" value="/dev/chasis"/>
+    <param name="baud" value="57600"/>
+  </node>
+  <node pkg="base_controller" type="base_controller.py" name="base_controller">
+    <param name="mode" value="simple"/>
+  </node>
+</launch>

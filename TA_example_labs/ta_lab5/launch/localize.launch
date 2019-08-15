@@ -30,8 +30,8 @@
 	<include file="$(find ta_lab5)/launch/map_server.launch"/>
 
 	<arg name="scan_topic" default="/scan"/>
-	<arg name="odometry_topic" default="/vesc/odom"/>
-	<!-- <arg name="odometry_topic" default="/odom"/> -->
+	<!-- <arg name="odometry_topic" default="/vesc/odom"/> -->
+	<arg name="odometry_topic" default="/odom"/>
 	<arg name="angle_step" default="18"/>
 	<arg name="max_particles" default="4000"/>
 	<arg name="squash_factor" default="2.2"/>

@@ -24,10 +24,9 @@ KD = 0.3  # angle term
 PUBLISH_LINE = True
 HISTORY_SIZE = 5 # Size of the circular array for smoothing steering commands
 PUBLISH_RATE = 20.0 # number of control commands to publish per second
-SPEED = 1.0
+SPEED = 2.0
 
 EPSILON = 0.000001
-
 class CircularArray(object):
     """docstring for CircularArray"""
     def __init__(self, size):
