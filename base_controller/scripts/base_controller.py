@@ -48,7 +48,11 @@ class base_controller():
         _motorSpdCmdMsg = msg.linear.x
         if _motorSpdCmdMsg:
             self.motorSpdCmdMsg.data = min(abs(_motorSpdCmdMsg) * self.scale, 255)
-            self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
+            #self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
+            if(_motorSpdCmdMsg>0):
+                self.motorModeCmdMsg.data = 1
+            elif(_motorSpdCmdMsg<0):
+                self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
 
@@ -64,7 +68,11 @@ class base_controller():
             _motorSpdCmdMsg += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
               +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
             self.motorSpdCmdMsg.data = min(abs(_motorSpdCmdMsg), 255)
-            self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
+            #self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
+            if(_motorSpdCmdMsg>0):
+                self.motorModeCmdMsg.data = 1
+            elif(_motorSpdCmdMsg<0):
+                self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
 
@@ -90,6 +98,7 @@ class base_controller():
             self.servoCmdPub.publish(self.servoCmdMsg)
             self.motorSpdCmdPub.publish(self.motorSpdCmdMsg)
             self.motorModeCmdPub.publish(self.motorModeCmdMsg)
+            self.odomPub.publish(self.odomMsg)
             self.rate.sleep()
         
 if __name__=="__main__":
