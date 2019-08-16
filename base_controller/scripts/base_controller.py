@@ -25,7 +25,7 @@ class base_controller():
         self.motorModeCmdMsg = UInt8()
         self.odomMsg = Odometry()
         self.servoCmdMsg.data = 90
-        self.wheelbase = 0.325
+        self.wheelbase = 0.58
         self.x = 0
         self.y = 0
         self.yaw = 0
@@ -71,7 +71,7 @@ class base_controller():
         _motorSpdCmdMsg = msg.linear.x
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
-        self.error[0] = _motorSpdCmdMsg - self.odomMsg.linear.x
+        self.error[0] = _motorSpdCmdMsg - self.odomMsg.twist.twist.linear.x
         if _motorSpdCmdMsg:
             _motorSpdCmdMsg *= self.scale
             _motorSpdCmdMsg += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
@@ -88,14 +88,15 @@ class base_controller():
     def rpmCallback(self, msg):
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
         # self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60
-        current_speed = msg.data * 0.09 * 2 * np.pi / 60
-        current_steering_angle = (self.servoCmdMsg.data - 90) / 2
-        current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase
+        current_speed = msg.data * 0.09 * 2 * np.pi / 60 
+        tan_current_steering_angle = 0.77 * math.sin(0.0098 * (self.servoCmdMsg.data - 90)) 
+        current_angular_velocity = current_speed * tan_current_steering_angle / self.wheelbase
 
         # dt used to calc odom
-        self.last_time = rospy.Time.now()
+        if(not self.last_time):
+            self.last_time = rospy.Time.now()
         dt = (rospy.Time.now() - self.last_time).to_sec()
-
+	self.last_time = rospy.Time.now()
         # spd orthogonal decomposition
         x_dot = current_speed * math.cos(self.yaw)
         y_dot = current_speed * math.sin(self.yaw)
@@ -149,6 +150,6 @@ class base_controller():
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'simple')
+    mode = rospy.get_param('mode', 'PID')
     baseController = base_controller(mode)
     baseController.spin()
