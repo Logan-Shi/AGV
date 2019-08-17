@@ -9,11 +9,12 @@
  -->
 <launch>
 
-
-    <!--  ************** Localization ***************  -->
-	<include file="$(find base_controller)/launch/base_controller.launch" />
+  <!--  ************** Bot bringup ***************  -->
+  <include file="$(find base_controller)/launch/base_controller.launch" />
 	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
-	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
+	
+  <!--  ************** Localization ***************  -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
       	<!--<remap from="scan" to="base_scan"/>-->
         <param name="map_frame" value="/map"/>
         <param name="odom_frame" value="/odom"/>
@@ -72,17 +73,16 @@
 
 	<!--  ****** Maps *****  -->
 <!-- 	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
-                <param name="frame_id" value="map"/>
-	</node> -->
+    <param name="frame_id" value="map"/>
+	</node>
 
-<!-- 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
 		<rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
-
-	        <param name="initial_pose_x"            value="2"/>
-		<param name="initial_pose_y"            value="2"/>
-		<param name="initial_pose_a"            value="0"/>
-	</node> -->
-
+      <param name="initial_pose_x"            value="2"/>
+		  <param name="initial_pose_y"            value="2"/>
+		  <param name="initial_pose_a"            value="0"/>
+	</node>
+ -->
 	<!--  **************** Visualisation ****************  -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find base_controller)/navigation.rviz"/>
 
