@@ -9,8 +9,6 @@
  -->
 <launch>
 
-    <!--  ************** Global Parameters ***************  -->
-    <param name="/use_sim_time" value="true"/>
 
     <!--  ************** Localization ***************  -->
 	<include file="$(find base_controller)/launch/base_controller.launch" />
@@ -86,6 +84,6 @@
 	</node> -->
 
 	<!--  **************** Visualisation ****************  -->
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find base_controller)/gmapping.rviz"/>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find base_controller)/navigation.rviz"/>
 
 </launch>
