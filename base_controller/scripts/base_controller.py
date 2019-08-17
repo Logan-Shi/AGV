@@ -128,7 +128,6 @@ class base_controller():
             'odom'
         )
 
-
     def stopMotor(self):
         self.motorSpdCmdMsg.data = 0
         self.motorModeCmdMsg.data = 0
