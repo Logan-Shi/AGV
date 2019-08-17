@@ -6,4 +6,5 @@
   <node pkg="base_controller" type="base_controller.py" name="base_controller">
     <param name="mode" value="PID"/>
   </node>
+  <node pkg="tf" type="static_transform_publisher" name="laser_link_broadcaster" args="0 0 0 0 0 0 base_link laser 20" />
 </launch>
