@@ -121,14 +121,12 @@ class base_controller():
         self.odomMsg.twist.twist.linear.x = current_speed
         self.odomMsg.twist.twist.linear.z = current_angular_velocity
         self.odomPub.publish(self.odomMsg)
-        self.tfPub.sendTransform(
-            (self.x, self.y, 0),
+        self.tfPub.sendTransform((self.x, self.y, 0),
             tf.transformations.quaternion_from_euler(0, 0, self.yaw),
             self.last_time,
-            'odom',
-            'base_link'
-            )
-
+            'base_link',
+            'odom'
+        )
 
     def stopMotor(self):
         self.motorSpdCmdMsg.data = 0
