@@ -13,21 +13,30 @@ import numpy as np
 
 from std_msgs.msg import UInt8
 from std_msgs.msg import Int16
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Point, Quaternion
+from nav_msgs.msg import Odometry
+import tf
+import math
 
 class base_controller():
     def __init__(self, mode):
         self.servoCmdMsg = UInt8()
         self.motorSpdCmdMsg = UInt8()
         self.motorModeCmdMsg = UInt8()
-        self.odomMsg = Twist()
+        self.odomMsg = Odometry()
         self.servoCmdMsg.data = 90
+        self.wheelbase = 0.58
+        self.x = 0
+        self.y = 0
+        self.yaw = 0
+        self.last_time = 0
 
         rospy.init_node('base_controller', anonymous=True)
         self.servoCmdPub = rospy.Publisher('servoCmd', UInt8, queue_size=1)
         self.motorSpdCmdPub = rospy.Publisher('motorSpdCmd', UInt8, queue_size=1)
         self.motorModeCmdPub = rospy.Publisher('motorModeCmd', UInt8, queue_size=1)
-        self.odomPub = rospy.Publisher('odom', Twist, queue_size=1)
+        self.odomPub = rospy.Publisher('odom', Odometry, queue_size=1)
+        self.tfPub = tf.TransformBroadcaster()
 
         self.scale = 121.75
         if mode == "PID":
@@ -62,7 +71,7 @@ class base_controller():
         _motorSpdCmdMsg = msg.linear.x
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
-        self.error[0] = _motorSpdCmdMsg - self.odomMsg.linear.x
+        self.error[0] = _motorSpdCmdMsg - self.odomMsg.twist.twist.linear.x
         if _motorSpdCmdMsg:
             _motorSpdCmdMsg *= self.scale
             _motorSpdCmdMsg += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
@@ -77,9 +86,48 @@ class base_controller():
             self.stopMotor()
 
     def rpmCallback(self, msg):
-        self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
-        self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60   
-        self.odomPub.publish(self.odomMsg)     
+        # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
+        # self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60
+        current_speed = msg.data * 0.09 * 2 * np.pi / 60 
+        tan_current_steering_angle = 0.77 * math.sin(0.0098 * (self.servoCmdMsg.data - 90)) 
+        current_angular_velocity = current_speed * tan_current_steering_angle / self.wheelbase
+
+        # dt used to calc odom
+        if(not self.last_time):
+            self.last_time = rospy.Time.now()
+        dt = (rospy.Time.now() - self.last_time).to_sec()
+	self.last_time = rospy.Time.now()
+        # spd orthogonal decomposition
+        x_dot = current_speed * math.cos(self.yaw)
+        y_dot = current_speed * math.sin(self.yaw)
+
+        # odom calculation
+        self.x += x_dot * dt
+        self.y += y_dot * dt
+        self.yaw += current_angular_velocity * dt
+
+        # Odom header msg
+        self.odomMsg.header.frame_id = 'odom'
+        self.odomMsg.header.stamp =  self.last_time
+        self.odomMsg.child_frame_id = 'base_link'
+
+        # Position
+        self.odomMsg.pose.pose.position.x = self.x
+        self.odomMsg.pose.pose.position.y = self.y
+        self.odomMsg.pose.pose.orientation.z = math.sin(self.yaw/2)
+        self.odomMsg.pose.pose.orientation.w = math.cos(self.yaw/2)
+        
+        # Velocity
+        self.odomMsg.twist.twist.linear.x = current_speed
+        self.odomMsg.twist.twist.linear.z = current_angular_velocity
+        self.odomPub.publish(self.odomMsg)
+        self.tfPub.sendTransform((self.x, self.y, 0),
+            tf.transformations.quaternion_from_euler(0, 0, self.yaw),
+            self.last_time,
+            'base_link',
+            'odom'
+        )
+
 
     def stopMotor(self):
         self.motorSpdCmdMsg.data = 0
@@ -98,10 +146,9 @@ class base_controller():
             self.servoCmdPub.publish(self.servoCmdMsg)
             self.motorSpdCmdPub.publish(self.motorSpdCmdMsg)
             self.motorModeCmdPub.publish(self.motorModeCmdMsg)
-            self.odomPub.publish(self.odomMsg)
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'simple')
+    mode = rospy.get_param('mode', 'PID')
     baseController = base_controller(mode)
     baseController.spin()
