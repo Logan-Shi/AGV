@@ -62,7 +62,7 @@ class base_controller():
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
-        _servoCmdMsg = math.asin(msg.angular.z * 0.58 / 0.77) / 0.0098 + 90
+        _servoCmdMsg = math.asin(msg.angular.z * 0.753 / self.odomMsg.twist.twist.linear.x) / 0.0098 + 90
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def cmdPIDCallback(self, msg):
@@ -71,7 +71,6 @@ class base_controller():
         self.error[1] = self.error[0]
         self.error[0] = target_speed - self.odomMsg.twist.twist.linear.x
         if target_speed:
-            target_speed *= self.scale
             target_speed += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
               +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
             self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
@@ -82,7 +81,7 @@ class base_controller():
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
-        _servoCmdMsg = math.asin(msg.angular.z * 0.58 / 0.77) / 0.0098 + 90
+        _servoCmdMsg = math.asin(msg.angular.z * 0.753 / self.odomMsg.twist.twist.linear.x) / 0.0098 + 90
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def rpmCallback(self, msg):
@@ -127,6 +126,13 @@ class base_controller():
             'base_link',
             'odom'
         )
+
+    def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
+        if omega == 0 or v == 0:
+            return 0
+
+        radius = v / omega
+        return math.atan(wheelbase / radius)
 
     def stopMotor(self):
         self.motorSpdCmdMsg.data = 0
