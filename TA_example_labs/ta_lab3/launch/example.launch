@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="ta_lab3" type="safety.py" name="Safety_Controller" />
+	<node pkg="ta_lab3" type="wall_follow.py" name="Wall_Following_Controller" />
+</launch>

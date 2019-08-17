@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="ta_lab4" type="detector.py" name="Object_Detector" />
+	<node pkg="ta_lab4" type="control.py" name="Control" />
+</launch>
