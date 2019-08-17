@@ -58,6 +58,8 @@ class base_controller():
         rospy.on_shutdown(self._shutdown)
     
     def cmdCallback(self, msg):
+        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
         target_speed = msg.linear.x
         if target_speed:
             self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
@@ -68,10 +70,10 @@ class base_controller():
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
-        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def cmdPIDCallback(self, msg):
+        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
         target_speed = msg.linear.x
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
@@ -87,8 +89,6 @@ class base_controller():
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
-        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def rpmCallback(self, msg):
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
