@@ -20,7 +20,7 @@ import math
 
 def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     if omega == 0 or v == 0:
-        return 0
+        return 90
 
     return math.asin(omega * wheelbase / 0.77 / v) / 0.0098 + 90
 
