@@ -52,38 +52,38 @@ class base_controller():
         rospy.on_shutdown(self._shutdown)
     
     def cmdCallback(self, msg):
-        _servoCmdMsg = msg.angular.z * 2 + 90
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
-        _motorSpdCmdMsg = msg.linear.x
-        if _motorSpdCmdMsg:
-            self.motorSpdCmdMsg.data = min(abs(_motorSpdCmdMsg) * self.scale, 255)
-            #self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
-            if(_motorSpdCmdMsg>0):
+        target_speed = msg.linear.x
+        if target_speed:
+            self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
+            #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
+            if(target_speed>0):
                 self.motorModeCmdMsg.data = 1
-            elif(_motorSpdCmdMsg<0):
+            elif(target_speed<0):
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
+        _servoCmdMsg = math.asin(msg.angular.z * 0.58 / 0.77) / 0.0098 + 90
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def cmdPIDCallback(self, msg):
-        _servoCmdMsg = msg.angular.z * 2 + 90
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
-        _motorSpdCmdMsg = msg.linear.x
+        target_speed = msg.linear.x
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
-        self.error[0] = _motorSpdCmdMsg - self.odomMsg.twist.twist.linear.x
-        if _motorSpdCmdMsg:
-            _motorSpdCmdMsg *= self.scale
-            _motorSpdCmdMsg += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
+        self.error[0] = target_speed - self.odomMsg.twist.twist.linear.x
+        if target_speed:
+            target_speed *= self.scale
+            target_speed += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
               +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
-            self.motorSpdCmdMsg.data = min(abs(_motorSpdCmdMsg), 255)
-            #self.motorModeCmdMsg.data = 2 - np.sign(_motorSpdCmdMsg) 
-            if(_motorSpdCmdMsg>0):
+            self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
+            #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
+            if(target_speed>0):
                 self.motorModeCmdMsg.data = 1
-            elif(_motorSpdCmdMsg<0):
+            elif(target_speed<0):
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
+        _servoCmdMsg = math.asin(msg.angular.z * 0.58 / 0.77) / 0.0098 + 90
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
 
     def rpmCallback(self, msg):
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
