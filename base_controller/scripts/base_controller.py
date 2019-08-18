@@ -119,7 +119,7 @@ class base_controller():
         error = target_speed - feedback_value
 
         self.current_time = rospy.Time.now()
-        delta_time = (self.current_time - self.last_time).to_sec()
+        delta_time = (self.PID_current_time - self.PID_last_time).to_sec()
         delta_error = error - self.last_error
 
         if (delta_time >= self.sample_time):
@@ -136,7 +136,7 @@ class base_controller():
                 self.DTerm = delta_error / delta_time
 
             # Remember last time and last error for next calculation
-            self.last_time = self.current_time
+            self.PID_last_time = self.PID_current_time
             self.last_error = error
 
             new_target_speed = self.PTerm + (self.PID_Ki * self.ITerm) + (self.PID_Kd * self.DTerm)
@@ -221,6 +221,6 @@ class base_controller():
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'simple')
+    mode = rospy.get_param('mode', 'new_PID')
     baseController = base_controller(mode)
     baseController.spin()
