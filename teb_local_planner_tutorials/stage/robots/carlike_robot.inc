@@ -3,7 +3,7 @@ define laser ranger
   sensor
   (
     range_max 999
-    fov 270.0 # the angular field of view of the scanner, in degrees.
+    fov 360 # the angular field of view of the scanner, in degrees.
     samples 640
   )
   # generic model properties
