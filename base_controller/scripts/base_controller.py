@@ -37,9 +37,12 @@ class base_controller():
         self.x = 0
         self.y = 0
         self.yaw = 0
-        self.last_time = 0
+        
 
         rospy.init_node('base_controller', anonymous=True)
+
+        self.last_time = rospy.Time.now()
+
         self.servoCmdPub = rospy.Publisher('servoCmd', UInt8, queue_size=1)
         self.motorSpdCmdPub = rospy.Publisher('motorSpdCmd', UInt8, queue_size=1)
         self.motorModeCmdPub = rospy.Publisher('motorModeCmd', UInt8, queue_size=1)
@@ -53,6 +56,9 @@ class base_controller():
             self.KD = 1
             self.error = [0, 0, 0]
             rospy.Subscriber('cmd_vel', Twist, self.cmdPIDCallback)
+        elif mode == 'new_PID':
+            self.new_PID_init()
+            rospy.Subscriber('cmd_vel', Twist, self.new_cmdPIDCallback)
         else: 
             rospy.Subscriber('cmd_vel', Twist, self.cmdCallback)
         rospy.Subscriber('rpm', Int16, self.rpmCallback)
@@ -82,7 +88,7 @@ class base_controller():
         self.error[0] = target_speed - self.odomMsg.twist.twist.linear.x
         if target_speed:
             target_speed += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
-              +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
+                +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
             self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
             #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
             if(target_speed>0):
@@ -91,6 +97,66 @@ class base_controller():
                 self.motorModeCmdMsg.data = 2
         else:
             self.stopMotor()
+
+    def new_PID_init(self,P=1.0,I=1.0,D=1.0):
+        self.PID_Kp = P
+        self.PID_Ki = I
+        self.PID_Kd = D
+
+        self.sample_time = 0.00
+        self.PID_current_time = rospy.Time.now()
+        self.PID_last_time = self.current_time
+
+        self.PTerm = 0.0
+        self.ITerm = 0.0
+        self.DTerm = 0.0
+        self.last_error = 0.0
+
+        self.windup_guard = 20.0
+
+
+    def new_PID_update(self,target_speed,feedback_value):
+        error = target_speed - feedback_value
+
+        self.current_time = rospy.Time.now()
+        delta_time = (self.current_time - self.last_time).to_sec()
+        delta_error = error - self.last_error
+
+        if (delta_time >= self.sample_time):
+            self.PTerm = self.PID_Kp * error
+            self.ITerm += error * delta_time
+
+            if (self.ITerm < -self.windup_guard):
+                self.ITerm = -self.windup_guard
+            elif (self.ITerm > self.windup_guard):
+                self.ITerm = self.windup_guard
+
+            self.DTerm = 0.0
+            if delta_time > 0:
+                self.DTerm = delta_error / delta_time
+
+            # Remember last time and last error for next calculation
+            self.last_time = self.current_time
+            self.last_error = error
+
+            new_target_speed = self.PTerm + (self.PID_Ki * self.ITerm) + (self.PID_Kd * self.DTerm)
+            return new_target_speed
+    
+    def new_cmdPIDCallback(self, msg):
+        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
+        target_speed = self.new_PID_update(msg.linear.x,self.odomMsg.twist.twist.linear.x)
+        if target_speed:
+            self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
+            #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
+            if(target_speed>0):
+                self.motorModeCmdMsg.data = 1
+            elif(target_speed<0):
+                self.motorModeCmdMsg.data = 2
+        else:
+            self.stopMotor()
+
+
 
     def rpmCallback(self, msg):
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
@@ -103,7 +169,7 @@ class base_controller():
         if(not self.last_time):
             self.last_time = rospy.Time.now()
         dt = (rospy.Time.now() - self.last_time).to_sec()
-	self.last_time = rospy.Time.now()
+        self.last_time = rospy.Time.now()
         # spd orthogonal decomposition
         x_dot = current_speed * math.cos(self.yaw)
         y_dot = current_speed * math.sin(self.yaw)
