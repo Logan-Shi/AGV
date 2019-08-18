@@ -153,6 +153,6 @@ class base_controller():
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'PID')
+    mode = rospy.get_param('mode', 'simple')
     baseController = base_controller(mode)
     baseController.spin()
