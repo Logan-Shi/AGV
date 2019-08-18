@@ -21,8 +21,10 @@ import math
 def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     if omega == 0 or v == 0:
         return 90
-    ratio = max(min(omega * wheelbase / 0.77 / v, 1),-1)
-    return math.asin(ratio) / 0.0098 + 90
+    radius = v / omega
+    steering_angle = math.atan(wheelbase / radius)
+    data = steering_angle / 0.0098 + 90
+    return data
 
 class base_controller():
     def __init__(self, mode):
