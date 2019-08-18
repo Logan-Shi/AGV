@@ -20,11 +20,21 @@ import math
 import matplotlib.pyplot as plt
 
 def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
-    if omega == 0 or v == 0:
+    rospy.loginfo("v: " + str(v))
+    rospy.loginfo("omega: " + str(omega))
+    if omega == 0 :
         return 90
+    if abs(v) < 0.1 :
+        if omega * v == 0 :
+            return 90
+        elif omega * v > 0 :
+            return 180
+        else :
+            return 0
     radius = v / omega
     steering_angle = math.atan(wheelbase / radius)
     data = steering_angle / 0.0098 + 90
+    rospy.loginfo("pre_servo: " + str(data))
     return data
 
 class base_controller():
@@ -48,30 +58,17 @@ class base_controller():
         self.motorModeCmdPub = rospy.Publisher('motorModeCmd', UInt8, queue_size=1)
         self.odomPub = rospy.Publisher('odom', Odometry, queue_size=1)
         self.tfPub = tf.TransformBroadcaster()
-
+        self.min_speed = 0.3
         self.scale = 121.75
 
-        self.servo_PID_init(0.7,0.0,0.0)
+        self.servo_PID_init(0.0000002,0.000,0.0)
 
         if mode == "PID":
             self.KP = 0.95
-<<<<<<< HEAD
             self.KI = 0.00
             self.KD = 0.000
             self.error = [0.0, 0.0, 0.0]
             rospy.Subscriber('cmd_vel', Twist, self.cmdPIDCallback)
-        elif mode == 'new_PID':
-            self.start_time = rospy.Time.now()
-            self.speed_list = []
-            self.time_list = []
-            self.new_PID_init()
-            rospy.Subscriber('cmd_vel', Twist, self.new_cmdPIDCallback)
-=======
-            self.KI = 0.0
-            self.KD = 0.0
-            self.error = [0, 0, 0]
-            rospy.Subscriber('cmd_vel', Twist, self.cmdPIDCallback)
->>>>>>> 98fee3b47b29b0debd1e3ba86e15ca1dcec82171
         else: 
             rospy.Subscriber('cmd_vel', Twist, self.cmdCallback)
         rospy.Subscriber('rpm', Int16, self.rpmCallback)
@@ -96,8 +93,9 @@ class base_controller():
     def cmdPIDCallback(self, msg):
         _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
         _servoCmdMsg += self.servo_PID_update( _servoCmdMsg,self.servoCmdMsg.data)
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
-        target_speed = msg.linear.x
+        rospy.loginfo("_servoCmdMsg: " + str(_servoCmdMsg))
+        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)    
+        target_speed = max(self.min_speed,abs(msg.linear.x)) * np.sign(msg.linear.x)
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
         self.error[0] = target_speed - self.odomMsg.twist.twist.linear.x
@@ -113,67 +111,7 @@ class base_controller():
         else:
             self.stopMotor()
 
-<<<<<<< HEAD
-    def new_PID_init(self,P=0.7,I=0.05,D=0.005):
-        self.PID_Kp = P
-        self.PID_Ki = I
-        self.PID_Kd = D
 
-        self.sample_time = 0.01
-        self.PID_current_time = rospy.Time.now()
-        self.PID_last_time = self.PID_current_time
-
-        self.PTerm = 0.0
-        self.ITerm = 0.0
-        self.DTerm = 0.0
-        self.last_error = 0.0
-
-        self.windup_guard = 10.0
-
-
-    def new_PID_update(self,target_speed,feedback_value):
-        error = target_speed - feedback_value
-
-        self.PID_current_time = rospy.Time.now()
-        delta_time = (self.PID_current_time - self.PID_last_time).to_sec()
-        delta_error = error - self.last_error
-
-        if (delta_time >= self.sample_time):
-            self.PTerm = self.PID_Kp * error
-            self.ITerm += error * delta_time
-
-            if (self.ITerm < -self.windup_guard):
-                self.ITerm = -self.windup_guard
-            elif (self.ITerm > self.windup_guard):
-                self.ITerm = self.windup_guard
-
-            self.DTerm = 0.0
-            if delta_time > 0:
-                self.DTerm = delta_error / delta_time
-
-            # Remember last time and last error for next calculation
-            self.PID_last_time = self.PID_current_time
-            self.last_error = error
-
-            new_target_speed = self.PTerm + (self.PID_Ki * self.ITerm) + (self.PID_Kd * self.DTerm)
-            return new_target_speed
-    
-    def new_cmdPIDCallback(self, msg):
-        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
-        self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
-        target_speed = msg.linear.x + self.new_PID_update(msg.linear.x,self.odomMsg.twist.twist.linear.x)
-        if target_speed:
-            self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
-            #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
-            if(target_speed>0):
-                self.motorModeCmdMsg.data = 1
-            elif(target_speed<0):
-                self.motorModeCmdMsg.data = 2
-        else:
-            self.stopMotor()
-
-
-=======
     def servo_PID_init(self,P,I,D):
         self.s_KP = P
         self.s_KI = I
@@ -185,7 +123,6 @@ class base_controller():
         self.s_error[2] = self.s_error[1]
         self.s_error[1] = self.s_error[0]
         self.s_error[0] = target - feedback
->>>>>>> 98fee3b47b29b0debd1e3ba86e15ca1dcec82171
 
         return (self.s_KP*(self.s_error[0]-self.s_error[1])+self.s_KI*self.s_error[0] \
                 +self.s_KD*(self.s_error[0]-2*self.s_error[1]+self.s_error[2]))
