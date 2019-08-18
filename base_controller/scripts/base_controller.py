@@ -119,7 +119,7 @@ class base_controller():
         error = target_speed - feedback_value
 
         self.current_time = rospy.Time.now()
-        delta_time = (self.PID_urrent_time - self.PID_last_time).to_sec()
+        delta_time = (self.PID_current_time - self.PID_last_time).to_sec()
         delta_error = error - self.last_error
 
         if (delta_time >= self.sample_time):
