@@ -17,6 +17,7 @@ from geometry_msgs.msg import Twist, Point, Quaternion
 from nav_msgs.msg import Odometry
 import tf
 import math
+import matplotlib.pyplot as plt
 
 def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     if omega == 0 or v == 0:
@@ -51,12 +52,15 @@ class base_controller():
 
         self.scale = 121.75
         if mode == "PID":
-            self.KP = 1
-            self.KI = 1
-            self.KD = 1
-            self.error = [0, 0, 0]
+            self.KP = 0.95
+            self.KI = 0.00
+            self.KD = 0.000
+            self.error = [0.0, 0.0, 0.0]
             rospy.Subscriber('cmd_vel', Twist, self.cmdPIDCallback)
         elif mode == 'new_PID':
+            self.start_time = rospy.Time.now()
+            self.speed_list = []
+            self.time_list = []
             self.new_PID_init()
             rospy.Subscriber('cmd_vel', Twist, self.new_cmdPIDCallback)
         else: 
@@ -98,27 +102,27 @@ class base_controller():
         else:
             self.stopMotor()
 
-    def new_PID_init(self,P=1.0,I=1.0,D=1.0):
+    def new_PID_init(self,P=0.7,I=0.05,D=0.005):
         self.PID_Kp = P
         self.PID_Ki = I
         self.PID_Kd = D
 
-        self.sample_time = 0.00
+        self.sample_time = 0.01
         self.PID_current_time = rospy.Time.now()
-        self.PID_last_time = self.current_time
+        self.PID_last_time = self.PID_current_time
 
         self.PTerm = 0.0
         self.ITerm = 0.0
         self.DTerm = 0.0
         self.last_error = 0.0
 
-        self.windup_guard = 20.0
+        self.windup_guard = 10.0
 
 
     def new_PID_update(self,target_speed,feedback_value):
         error = target_speed - feedback_value
 
-        self.current_time = rospy.Time.now()
+        self.PID_current_time = rospy.Time.now()
         delta_time = (self.PID_current_time - self.PID_last_time).to_sec()
         delta_error = error - self.last_error
 
@@ -145,7 +149,7 @@ class base_controller():
     def new_cmdPIDCallback(self, msg):
         _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
-        target_speed = self.new_PID_update(msg.linear.x,self.odomMsg.twist.twist.linear.x)
+        target_speed = msg.linear.x + self.new_PID_update(msg.linear.x,self.odomMsg.twist.twist.linear.x)
         if target_speed:
             self.motorSpdCmdMsg.data = min(abs(target_speed * 60 / (0.18 * np.pi)), 255)
             #self.motorModeCmdMsg.data = 2 - np.sign(target_speed) 
@@ -221,6 +225,6 @@ class base_controller():
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'new_PID')
+    mode = rospy.get_param('mode', 'PID')
     baseController = base_controller(mode)
     baseController.spin()
