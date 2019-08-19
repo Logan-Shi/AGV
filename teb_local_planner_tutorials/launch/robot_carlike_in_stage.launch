@@ -18,68 +18,15 @@
   	</node>
 
   	<include file="$(find base_controller)/launch/cmd_vel_mux.launch"/>
-    <include file="$(find base_controller)/launch/laser_filter.launch"/>
-
-<!-- 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
-      	<remap from="scan" to="scan_filtered"/>
-        <param name="map_frame" value="/map"/>
-        <param name="odom_frame" value="/odom"/>
-        <param name="base_frame" value="/base_link"/>
-        <param name="map_update_interval" value="2.0"/>
-        <param name="maxUrange" value="50.0"/>
-        <param name="maxRange" value="50.0"/>
-        <param name="sigma" value="0.05"/>
-        <param name="kernelSize" value="1"/>
-        <param name="lstep" value="0.05"/>
-        <param name="astep" value="0.05"/>
-        <param name="iterations" value="5"/>
-        <param name="lsigma" value="0.075"/>
-        <param name="ogain" value="3.0"/>
-        <param name="lskip" value="0"/>
-        <param name="srr" value="0.01"/>
-        <param name="srt" value="0.02"/>
-        <param name="str" value="0.01"/>
-        <param name="stt" value="0.02"/>
-        <param name="linearUpdate" value="0.01"/>
-        <param name="angularUpdate" value="0.01"/>
-        <param name="temporalUpdate" value="0.1"/>
-        <param name="resampleThreshold" value="0.5"/>
-        <param name="particles" value="30"/>
-        <param name="xmin" value="-5.0"/>
-        <param name="ymin" value="-5.0"/>
-        <param name="xmax" value="5.0"/>
-        <param name="ymax" value="5.0"/>
-        <param name="delta" value="0.1"/>
-        <param name="llsamplerange" value="0.01"/>
-        <param name="llsamplestep" value="0.01"/>
-      	<param name="lasamplerange" value="0.005"/>
-      	<param name="lasamplestep" value="0.005"/>
-      	<param name="minimumScore" value="0.005"/>
-    </node> -->
-
+    <node pkg="laser_filters" type="scan_to_scan_filter_chain"
+      name="laser_filter">
+       <rosparam command="load" file="$(find base_controller)/param/laser_config_sim.yaml" />
+       <!-- <remap from="scan" to="base_scan" /> -->
+    </node>
+    <!-- <include file="$(find base_controller)/launch/gmapping.launch" />
+ -->
     <!--  ************** Navigation ***************  -->
-	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-    <remap from="/scan" to="/scan_filtered"/>
-		<remap from="/cmd_vel" to="/cmd_vel_mux/input/navi"/>
-    <!-- LOAD COSTMAP_CONVERTER PARAMETERS HERE -->
-    <rosparam file="$(find base_controller)/param/costmap_converter_params.yaml" command="load" />
-
-  	  	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="global_costmap" />
-  	 	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="local_costmap" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/local_costmap_params.yaml" command="load" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/global_costmap_params.yaml" command="load" />
-  		<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/teb_local_planner_params.yaml" command="load" />
-
-		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
-		<param name="planner_frequency" value="1.0" />
-		<param name="planner_patience" value="5.0" />
-
-		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
-		<param name="controller_frequency" value="5.0" />
-		<param name="controller_patience" value="15.0" />
-
-        <param name="clearing_rotation_allowed" value="false" /> <!-- Our carlike robot is not able to rotate in place -->
-	</node>
+    <include file="$(find base_controller)/launch/move_base.launch" />
 
 
 	<!--  ****** Maps *****  -->
