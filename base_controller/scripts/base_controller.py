@@ -20,21 +20,23 @@ import math
 import matplotlib.pyplot as plt
 
 def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
-    rospy.loginfo("v: " + str(v))
-    rospy.loginfo("omega: " + str(omega))
-    if omega == 0 :
-        return 90
-    if abs(v) < 0.1 :
-        if omega * v == 0 :
-            return 90
-        elif omega * v > 0 :
-            return 180
-        else :
-            return 0
-    radius = v / omega
-    steering_angle = math.atan(wheelbase / radius)
-    data = steering_angle / 0.0098 + 90
-    rospy.loginfo("pre_servo: " + str(data))
+    # rospy.loginfo("v: " + str(v))
+    # rospy.loginfo("omega: " + str(omega))
+    # if omega == 0 :
+    #     return 90
+    # if abs(v) < 0.1 :
+    #     if omega * v == 0 :
+    #         return 90
+    #     elif omega * v > 0 :
+    #         return 180
+    #     else :
+    #         return 0
+    # radius = v / omega
+    # steering_angle = math.atan(wheelbase / radius)
+    # data = steering_angle / 0.0098 + 90
+    # rospy.loginfo("pre_servo: " + str(data))
+    # return data
+    data = omega / 0.0098 + 90
     return data
 
 class base_controller():

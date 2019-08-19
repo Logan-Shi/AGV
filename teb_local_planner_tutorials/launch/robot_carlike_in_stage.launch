@@ -18,9 +18,10 @@
   	</node>
 
   	<include file="$(find base_controller)/launch/cmd_vel_mux.launch"/>
+    <include file="$(find base_controller)/launch/laser_filter.launch"/>
 
 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
-      	<!--<remap from="scan" to="base_scan"/>-->
+      	<remap from="scan" to="scan_filtered"/>
         <param name="map_frame" value="/map"/>
         <param name="odom_frame" value="/odom"/>
         <param name="base_frame" value="/base_link"/>
@@ -58,6 +59,7 @@
 
     <!--  ************** Navigation ***************  -->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/scan" to="/scan_filtered"/>
 		<remap from="/cmd_vel" to="/cmd_vel_mux/input/navi"/>
   	  	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="global_costmap" />
   	 	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="local_costmap" />

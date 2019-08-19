@@ -5,12 +5,12 @@ TebLocalPlannerROS:
  # Trajectory
   
  teb_autosize: True
- dt_ref: 0.3
- dt_hysteresis: 0.1
+ dt_ref: 0.8
+ dt_hysteresis: 0.3
  max_samples: 500
- global_plan_overwrite_orientation: True
+ global_plan_overwrite_orientation: False
  allow_init_with_backwards_motion: True
- max_global_plan_lookahead_dist: 3.0
+ max_global_plan_lookahead_dist: 5.0 # should increase with max_vel_x, should not exceed lidar detection distance and local_cost_map 
  global_plan_viapoint_sep: -1
  global_plan_prune_distance: 1
  exact_arc_length: False
@@ -46,15 +46,15 @@ TebLocalPlannerROS:
  # GoalTolerance
     
  xy_goal_tolerance: 0.2
- yaw_goal_tolerance: 0.1
- free_goal_vel: False
+ yaw_goal_tolerance: 0.5
+ free_goal_vel: False # stop at goal
  complete_global_plan: True
     
  # Obstacles
     
- min_obstacle_dist: 0.1 # This value must also include our robot's expansion, since footprint_model is set to "line".
+ min_obstacle_dist: 0.01 # This value must also include our robot's expansion, since footprint_model is set to "line".
  inflation_dist: 0.6
- include_costmap_obstacles: True
+ include_costmap_obstacles: True # True to avoid dynamic obstacles
  costmap_obstacles_behind_robot_dist: 1.0
  obstacle_poses_affected: 15
 
@@ -68,7 +68,7 @@ TebLocalPlannerROS:
  # Optimization
     
  no_inner_iterations: 5
- no_outer_iterations: 4
+ no_outer_iterations: 1
  optimization_activate: True
  optimization_verbose: False
  penalty_epsilon: 0.1
@@ -78,7 +78,7 @@ TebLocalPlannerROS:
  weight_acc_lim_x: 1
  weight_acc_lim_theta: 1
  weight_kinematics_nh: 1000
- weight_kinematics_forward_drive: 1
+ weight_kinematics_forward_drive: 100
  weight_kinematics_turning_radius: 1
  weight_optimaltime: 1 # must be > 0
  weight_shortest_path: 0
