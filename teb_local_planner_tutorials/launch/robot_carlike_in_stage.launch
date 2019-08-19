@@ -20,7 +20,7 @@
   	<include file="$(find base_controller)/launch/cmd_vel_mux.launch"/>
     <include file="$(find base_controller)/launch/laser_filter.launch"/>
 
-	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
+<!-- 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
       	<remap from="scan" to="scan_filtered"/>
         <param name="map_frame" value="/map"/>
         <param name="odom_frame" value="/odom"/>
@@ -55,12 +55,15 @@
       	<param name="lasamplerange" value="0.005"/>
       	<param name="lasamplestep" value="0.005"/>
       	<param name="minimumScore" value="0.005"/>
-    </node>
+    </node> -->
 
     <!--  ************** Navigation ***************  -->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <remap from="/scan" to="/scan_filtered"/>
 		<remap from="/cmd_vel" to="/cmd_vel_mux/input/navi"/>
+    <!-- LOAD COSTMAP_CONVERTER PARAMETERS HERE -->
+    <rosparam file="$(find base_controller)/param/costmap_converter_params.yaml" command="load" />
+
   	  	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="global_costmap" />
   	 	<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/costmap_common_params.yaml" command="load" ns="local_costmap" />
   		<rosparam file="$(find teb_local_planner_tutorials)/cfg/carlike/local_costmap_params.yaml" command="load" />
@@ -80,7 +83,7 @@
 
 
 	<!--  ****** Maps *****  -->
-<!-- 	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
                 <param name="frame_id" value="map"/>
 	</node>
 
@@ -88,9 +91,9 @@
 		<rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
 
 	        <param name="initial_pose_x"            value="2"/>
-		<param name="initial_pose_y"            value="2"/>
+		<param name="initial_pose_y"            value="9"/>
 		<param name="initial_pose_a"            value="0"/>
-	</node> -->
+	</node>
 
 	<!--  **************** Visualisation ****************  -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
