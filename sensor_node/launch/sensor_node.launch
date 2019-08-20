@@ -1,10 +1,7 @@
 <launch>
-  <include file="$(find rplidar_ros)/launch/view_rplidar_a3.launch" />
-
   <node name="sensor_main" pkg="sensor_node" type="sensor_main">
       <param name="ANGLE_COEF"    type="double" value="2"/>
       <param name="ROBOT_SPEED"   type="double" value="0.4"/>
   </node>
   
-  <node name="simple_controller" pkg="simple_controller" type="simple_controller"/>
 </launch>

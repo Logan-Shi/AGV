@@ -2,10 +2,10 @@
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
 
-#include "opencv2/opencv.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/calib3d/calib3d.hpp"
-#include "opencv2/features2d/features2d.hpp"
+// #include "opencv2/opencv.hpp"
+// #include "opencv2/highgui/highgui.hpp"
+// #include "opencv2/calib3d/calib3d.hpp"
+// #include "opencv2/features2d/features2d.hpp"
 
 #include <cmath>
 #include <string>
@@ -72,16 +72,16 @@ private:
 
 
 
-	cv::VideoCapture cap;
-	cv::Mat frame, capped;
-	cv::Mat test_mapx, test_mapy;
-	std::vector<std::vector<double> >Pts;
-	double angle;
+	// cv::VideoCapture cap;
+	// cv::Mat frame, capped;
+	// cv::Mat test_mapx, test_mapy;
+	// std::vector<std::vector<double> >Pts;
+	// double angle;
 
-	void publishCameraMessage();
-	void CameraStart();
-	bool Detector(cv::Mat frame);
-	double filter(double in, std::vector<double> &Pt, int boundary);
+	// void publishCameraMessage();
+	// void CameraStart();
+	// bool Detector(cv::Mat frame);
+	// double filter(double in, std::vector<double> &Pt, int boundary);
 
 	ros::Publisher pubMessage; // Object for publishing messages.
 };
