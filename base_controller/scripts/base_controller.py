@@ -63,12 +63,12 @@ class base_controller():
         self.min_speed = 0.3
         self.scale = 121.75
 
-        self.servo_PID_init(0.0000002,0.000,0.0)
+        self.servo_PID_init(0.02,0.03,0.05)
 
         if mode == "PID":
-            self.KP = 0.95
-            self.KI = 0.00
-            self.KD = 0.000
+            self.KP = 0.60
+            self.KI = 0.07
+            self.KD = 0.05
             self.error = [0.0, 0.0, 0.0]
             rospy.Subscriber('cmd_vel', Twist, self.cmdPIDCallback)
         else: 
