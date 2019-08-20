@@ -29,7 +29,7 @@ public:
 	* speed     Value, which will be stored in robotSpeed.
 	*/
 
-	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int);
+	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int , double, double);
 
 	~SensorNode();
 
@@ -44,9 +44,6 @@ public:
 
 	void messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 
-
-
-
 private:
 
 	/* This method publishes commands for robot.
@@ -56,19 +53,24 @@ private:
 	* value. Robot turns sharper, if higher value >> lower value.
 	*/
 
-	void publishRadarMessage();
-	
-	double angleCoef;       // Coeficient for transfering angles to speed.
+	void publishTwist(double,double);
 	double robotSpeed;        // Speed of robot [m/s].
+	double angleCoef;       // Coeficient for transfering angles to speed.
 	int min_degree;             // detect angle in degrees
 	int max_degree;             // detect angle in degrees
+	int size;
 	double min_dis;            // detect distance
 	double max_dis;            // detect distance
-	double angleMinLeft;       // Angle, at which was measured the shortest distance on the left.
 	double distMinLeft;        // Minimum distance masured by sensor on the left.
-	double angleMinRight;      // Angle, at which was measured the shortest distance on the right.
 	double distMinRight;
-	bool isStop;	
+
+	double angleCoef_f;       // Coeficient for transfering angles to speed.
+	double max_dis_f;            // detect distance
+	double distMinLeft_f;        // Minimum distance masured by sensor on the left.
+	double distMinRight_f;
+	double minDisRight(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
+	double minDisLeft(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
+	
 	//double angleMinFront1;
 	//double angleMinFront2;      // Angle, at which was measured the shortest distance on the right.
 	//double distMinFront1;
