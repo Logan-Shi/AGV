@@ -330,9 +330,9 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	// isStop=1;
 
 	//Calculation of angle from indexes and storing data to class variables.
-	angleMinLeft = (minIndexLeft - size / 2)*msg->angle_increment;
+	angleMinLeft = 360 / size * minIndexLeft;
 	distMinLeft = msg->ranges[minIndexLeft];
-	angleMinRight = (minIndexRight - size / 2)*msg->angle_increment;
+	angleMinRight = 360 / size * (size - minIndexLeft);
 	distMinRight = msg->ranges[minIndexRight];
 	//angleMinFront1 = (minIndexFront1 - size / 2)*msg->angle_increment;
 	//angleMinFront2 = (minIndexFront2 - size / 2)*msg->angle_increment;
