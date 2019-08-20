@@ -286,6 +286,7 @@ void SensorNode::publishRadarMessage()
 void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
 	//Calculation of array size from angle range and angle increment.
+	ROS_INFO("scanCallBack called");
 	int size = msg->ranges.size();
 	int minIndexLeft = 0;
 	bool isStop = 0;
@@ -325,16 +326,17 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	//angleMinFront2 = (minIndexFront2 - size / 2)*msg->angle_increment;
 	//distMinFront1 = msg->ranges[minIndexFront1];
 	//distMinFront2 = msg->ranges[minIndexFront2];
-	if(isStop)
+	if (isStop)
 	{
 		geometry_msgs::Twist msg;
 		msg.angular.z *= 0;
 		msg.linear.x *= 0;
 		//publishing message
+		ROS_INFO("publish called");
 		pubMessage.publish(msg);
 		// cv::waitKey(1000);
 	}
-	else if(distMinLeft<1&& distMinRight<1)
+	else
 		publishRadarMessage();
 	// else
 	// 	CameraStart();
