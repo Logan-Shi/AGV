@@ -29,7 +29,7 @@ public:
 	* speed     Value, which will be stored in robotSpeed.
 	*/
 
-	SensorNode(ros::Publisher pub, double angleC, double speed);
+	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int);
 
 	~SensorNode();
 
@@ -60,6 +60,10 @@ private:
 	
 	double angleCoef;       // Coeficient for transfering angles to speed.
 	double robotSpeed;        // Speed of robot [m/s].
+	int min_degree;             // detect angle in degrees
+	int max_degree;             // detect angle in degrees
+	double min_dis;            // detect distance
+	double max_dis;            // detect distance
 	double angleMinLeft;       // Angle, at which was measured the shortest distance on the left.
 	double distMinLeft;        // Minimum distance masured by sensor on the left.
 	double angleMinRight;      // Angle, at which was measured the shortest distance on the right.
