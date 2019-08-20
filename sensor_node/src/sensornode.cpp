@@ -1,15 +1,19 @@
 #include "sensornode.h"
 
 
-#define ImgWidth 960
-#define ImgHeigh 540
+// #define ImgWidth 960
+// #define ImgHeigh 540
 
 //Constructor and destructor
-SensorNode::SensorNode(ros::Publisher pub, double angleC, double speed)
+SensorNode::SensorNode(ros::Publisher pub, double angleC, double speed, double _min_dis, double _max_dis, int _min_degree, int _max_degree)
 {
 	angleCoef = angleC;
 	robotSpeed = speed;
 	pubMessage = pub;
+	min_degree = _min_degree;
+	max_degree = _max_degree;
+	min_dis = _min_dis;
+	max_dis = _max_dis;
 
 	// cap.open(1);
 	// cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
@@ -58,10 +62,11 @@ void SensorNode::publishRadarMessage()
 	{
 		msg.angular.z = angleCoef * (distMinRight / distMinLeft - 1);
 	}
-	ROS_INFO("distMinRight = %f",distMinRight);
+	
 	ROS_INFO("angleMinRight = %f",angleMinRight);
-	ROS_INFO("distMinLeft = %f",distMinLeft);
 	ROS_INFO("angleMinLeft = %f",angleMinLeft);
+	ROS_INFO("distMinRight = %f",distMinRight);
+	ROS_INFO("distMinLeft = %f",distMinLeft);
 	ROS_INFO("angle = %f",msg.angular.z);
 	msg.linear.x = robotSpeed;
 	//if (distMinLeft < 0.25 && distMinRight < 0.25 && angleMinLeft < 0.7 && angleMinRight < 0.7)
@@ -296,16 +301,18 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	int minIndexLeft = 0;
 	bool isStop = 0;
 	int minIndexRight = size / 2;
+	int min_index = size / (360 / min_degree);
+	int max_index = size / (360 / max_degree);
 	//This cycle goes through array and finds minimum on the left and right
-	for (int i = size/24; i<size / 6; i++)
+	for (int i = min_index; i < max_index; i++)
 	{
-		if (msg->ranges[i] < msg->ranges[minIndexRight] && msg->ranges[i] > 0.05) {
+		if (msg->ranges[i] < msg->ranges[minIndexRight] && msg->ranges[i] > min_dis && msg->ranges[i] < max_dis) {
 			minIndexRight = i;
 		}
 	}
-	for (int i = size / 6*5; i <size*23/24; i++)
+	for (int i = size - max_index; i < size - min_index; i++)
 	{
-		if (msg->ranges[i] < msg->ranges[minIndexLeft] && msg->ranges[i] > 0.05) {
+		if (msg->ranges[i] < msg->ranges[minIndexLeft] && msg->ranges[i] > min_dis && msg->ranges[i] < max_dis) {
 			minIndexLeft = i;
 		}
 	}
