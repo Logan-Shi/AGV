@@ -1,5 +1,5 @@
 <launch>
-  <node name="sensor_main" pkg="sensor_node" type="sensor_main">
+  <node name="sensor_main" pkg="sensor_node" type="sensor_main" output="screen">
       <param name="ANGLE_COEF"    type="double" value="2"/>
       <param name="ROBOT_SPEED"   type="double" value="0.4"/>
   </node>

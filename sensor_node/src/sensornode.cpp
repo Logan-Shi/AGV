@@ -52,13 +52,17 @@ void SensorNode::publishRadarMessage()
 
 	if (distMinLeft >= distMinRight)
 	{
-		msg.angular.z = -(angleCoef*distMinLeft / distMinRight - angleCoef);
+		msg.angular.z = -angleCoef * (distMinLeft / distMinRight - 1);
 	}
 	else
 	{
-		msg.angular.z = angleCoef*distMinRight / distMinLeft - angleCoef;
+		msg.angular.z = angleCoef * (distMinRight / distMinLeft - 1);
 	}
-
+	ROS_INFO("distMinRight = %f",distMinRight);
+	ROS_INFO("angleMinRight = %f",angleMinRight);
+	ROS_INFO("distMinLeft = %f",distMinLeft);
+	ROS_INFO("angleMinLeft = %f",angleMinLeft);
+	ROS_INFO("angle = %f",msg.angular.z);
 	msg.linear.x = robotSpeed;
 	//if (distMinLeft < 0.25 && distMinRight < 0.25 && angleMinLeft < 0.7 && angleMinRight < 0.7)
 	//{
@@ -287,7 +291,8 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
 	//Calculation of array size from angle range and angle increment.
 	ROS_INFO("scanCallBack called");
-	int size = msg->ranges.size();
+	int size = msg->ranges.size(); 
+	// ROS_INFO("size = %d",size);
 	int minIndexLeft = 0;
 	bool isStop = 0;
 	int minIndexRight = size / 2;
@@ -305,17 +310,17 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 		}
 	}
 
-	int counter=0;
-	for (int i = 0; i <360; i++)
-	{
-		if(i>60 && i<300)
-		continue;
-		if (msg->ranges[size*i/360] < 0.40 && msg->ranges[size*i/360] > 0.05) {
-			counter++;
-		}
-	}
-	if(counter>15)
-	isStop=1;
+	// int counter=0;
+	// for (int i = 0; i <360; i++)
+	// {
+	// 	if(i>60 && i<300)
+	// 	continue;
+	// 	if (msg->ranges[size*i/360] < 0.40 && msg->ranges[size*i/360] > 0.05) {
+	// 		counter++;
+	// 	}
+	// }
+	// if(counter>15)
+	// isStop=1;
 
 	//Calculation of angle from indexes and storing data to class variables.
 	angleMinLeft = (minIndexLeft - size / 2)*msg->angle_increment;
@@ -326,17 +331,17 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	//angleMinFront2 = (minIndexFront2 - size / 2)*msg->angle_increment;
 	//distMinFront1 = msg->ranges[minIndexFront1];
 	//distMinFront2 = msg->ranges[minIndexFront2];
-	if (isStop)
-	{
-		geometry_msgs::Twist msg;
-		msg.angular.z *= 0;
-		msg.linear.x *= 0;
-		//publishing message
-		ROS_INFO("publish called");
-		pubMessage.publish(msg);
-		// cv::waitKey(1000);
-	}
-	else
+	// if (isStop)
+	// {
+	// 	geometry_msgs::Twist msg;
+	// 	msg.angular.z *= 0;
+	// 	msg.linear.x *= 0;
+	// 	//publishing message
+	// 	ROS_INFO("publish called");
+	// 	pubMessage.publish(msg);
+	// 	// cv::waitKey(1000);
+	// }
+	// else
 		publishRadarMessage();
 	// else
 	// 	CameraStart();

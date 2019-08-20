@@ -5,7 +5,7 @@
 double ANGLE_COEF = 2; // Coeficient for angles.
 double ROBOT_SPEED = 0.30; // Speed of robot [m/s].
 						   //define PUBLISHER_TOPIC "/syros/base_cmd_vel"
-# define PUBLISHER_TOPIC "/cmd_vel_mux/input/navi"
+# define PUBLISHER_TOPIC "/cmd_vel_mux/input/laser"
 						   // #define SUBSCRIBER_TOPIC "/syros/laser_laser"
 # define SUBSCRIBER_TOPIC "/scan_filtered"
 
