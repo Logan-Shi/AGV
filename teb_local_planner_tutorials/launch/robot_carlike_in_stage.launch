@@ -41,7 +41,17 @@
 		<param name="initial_pose_y"            value="9"/>
 		<param name="initial_pose_a"            value="0"/>
 	</node>
+<!--   <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/stata_basement.yaml" output="screen">
+                <param name="frame_id" value="map"/>
+  </node>
 
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
+
+          <param name="initial_pose_x"            value="0"/>
+    <param name="initial_pose_y"            value="0"/>
+    <param name="initial_pose_a"            value="0"/>
+  </node> -->
 	<!--  **************** Visualisation ****************  -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
 

@@ -31,3 +31,11 @@ localize bot, input raw /odom, and output /pf/pose/odom
 
 `roslaunch ta_lab5 slime.launch`  
 hector_trajectory_server: Get the traveled trajectory
+
+## Match Log
+
+problems:
+can't locate when too quick
+1. try decrease max_vel_x and see if it's better
+
+2. try last-year node
