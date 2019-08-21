@@ -36,7 +36,7 @@ def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     # data = steering_angle / 0.0098 + 90
     # rospy.loginfo("pre_servo: " + str(data))
     # return data
-    data = omega / 0.0098 + 90
+    data = omega / 0.0098 * 2 + 90
     return data
 
 class base_controller():
@@ -132,9 +132,13 @@ class base_controller():
     def rpmCallback(self, msg):
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
         # self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60
-        current_speed = msg.data * 0.09 * 2 * np.pi / 60 
-        tan_current_steering_angle = 0.77 * math.sin(0.0098 * (self.servoCmdMsg.data - 90)) 
-        current_angular_velocity = current_speed * tan_current_steering_angle / self.wheelbase
+        if (msg.data > 0):
+            gain = 1.08
+        else :
+            gain = 1.0
+        current_speed = msg.data * gain * 0.09 * 2 * np.pi / 60
+        current_steering_angle = 0.0098 * (self.servoCmdMsg.data - 90) 
+        current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase / 2.5
 
         # dt used to calc odom
         if(not self.last_time):
