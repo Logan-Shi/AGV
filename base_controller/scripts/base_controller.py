@@ -36,7 +36,7 @@ def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     # data = steering_angle / 0.0098 + 90
     # rospy.loginfo("pre_servo: " + str(data))
     # return data
-    data = omega #/ 0.0098 * 2 + 90
+    data = omega * 188.5 + 90.55
     return data
 
 class base_controller():
@@ -137,8 +137,8 @@ class base_controller():
         else :
             gain = 1.0
         current_speed = msg.data * gain * 0.09 * 2 * np.pi / 60
-        current_steering_angle = 0.0098 * (self.servoCmdMsg.data - 90) 
-        current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase / 2.5
+        current_steering_angle = 0.005279 * self.servoCmdMsg.data - 0.4782 
+        current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase
 
         # dt used to calc odom
         if(not self.last_time):
