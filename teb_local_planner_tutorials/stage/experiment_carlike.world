@@ -31,14 +31,14 @@ window
 floorplan
 (
   name "maze"
-  bitmap "../maps/stata_basement.png"
-  size [ 86.500 30.000 1.000 ]
+  bitmap "../maps/experiment_2.png"
+  size [ 43.25 15.000 1.000 ]
   pose [  0.000  0.000 0.000 0.000 ]
 )
 
 # throw in a robot
 carlike_robot
 (
-  pose [ 0.000 0.000 0.000 0.000 ]
+  pose [ 11.000 1.500 0.000 0.000 ]
   name "robot"
 )
