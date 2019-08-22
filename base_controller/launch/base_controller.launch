@@ -3,7 +3,7 @@
     <param name="port" value="/dev/chasis"/>
     <param name="baud" value="57600"/>
   </node>
-  <node pkg="base_controller" type="base_controller.py" name="base_controller">
+  <node pkg="base_controller" type="base_controller.py" name="base_controller" output="screen">
     <param name="mode" value="simple"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="laser_link_broadcaster" args="0.55 0 0 3.14 0 0 base_link laser 20" />

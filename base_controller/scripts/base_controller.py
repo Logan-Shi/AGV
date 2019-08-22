@@ -95,7 +95,7 @@ class base_controller():
     def cmdPIDCallback(self, msg):
         _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
         _servoCmdMsg += self.servo_PID_update( _servoCmdMsg,self.servoCmdMsg.data)
-        rospy.loginfo("_servoCmdMsg: " + str(_servoCmdMsg))
+        # rospy.loginfo("_servoCmdMsg: " + str(_servoCmdMsg))
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)    
         target_speed = max(self.min_speed,abs(msg.linear.x)) * np.sign(msg.linear.x)
         self.error[2] = self.error[1]
@@ -139,6 +139,8 @@ class base_controller():
         current_speed = msg.data * gain * 0.09 * 2 * np.pi / 60
         current_steering_angle = 0.005279 * self.servoCmdMsg.data - 0.4782 
         current_angular_velocity = current_speed * math.tan(current_steering_angle) / self.wheelbase
+        # rospy.loginfo("steering angle = " + str(current_steering_angle))
+        # rospy.loginfo("omega = " + str(current_angular_velocity))
 
         # dt used to calc odom
         if(not self.last_time):
@@ -167,7 +169,7 @@ class base_controller():
         
         # Velocity
         self.odomMsg.twist.twist.linear.x = current_speed
-        self.odomMsg.twist.twist.linear.z = current_angular_velocity
+        self.odomMsg.twist.twist.angular.z = current_angular_velocity
         self.odomPub.publish(self.odomMsg)
         self.tfPub.sendTransform((self.x, self.y, 0),
             tf.transformations.quaternion_from_euler(0, 0, self.yaw),
