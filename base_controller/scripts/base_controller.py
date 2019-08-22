@@ -36,7 +36,7 @@ def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
     # data = steering_angle / 0.0098 + 90
     # rospy.loginfo("pre_servo: " + str(data))
     # return data
-    data = omega / 0.0098 * 2 + 90
+    data = omega #/ 0.0098 * 2 + 90
     return data
 
 class base_controller():
