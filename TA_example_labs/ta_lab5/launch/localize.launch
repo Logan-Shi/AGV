@@ -32,7 +32,7 @@
 	<arg name="scan_topic" default="/scan_filtered"/>
 	<!-- <arg name="odometry_topic" default="/vesc/odom"/> -->
 	<arg name="odometry_topic" default="/odom"/>
-	<arg name="angle_step" default="18"/>
+	<arg name="angle_step" default="1"/>
 	<arg name="max_particles" default="4000"/>
 	<arg name="squash_factor" default="2.2"/>
 	<arg name="viz" default="1"/>
@@ -45,14 +45,14 @@
 		<param name="max_particles" value="$(arg max_particles)"/>
 		<param name="max_viz_particles" value="60"/>
 		<!-- <param name="range_method" value="pcddt"/> -->
-		<param name="range_method" value="cddt"/>
+		<param name="range_method" value="glt"/>
 		<param name="squash_factor" value="$(arg squash_factor)"/>
 		<param name="theta_discretization" value="112"/>
 		<!-- max sensor range in meters -->
 		<param name="max_range" value="10"/> 
 		<param name="viz" value="$(arg viz)"/> 
 		<param name="fine_timing" value="0"/> 
-		<param name="publish_odom" value="1"/> 
+		<param name="publish_odom" value="0"/> 
 
 		<!-- this option switches between different sensor model variants, high values are more
 		     optimized. range_variant 3 does not work for rmgpu, but variant 2 is very good

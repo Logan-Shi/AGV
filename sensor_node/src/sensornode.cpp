@@ -71,6 +71,7 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	{
 		angle += angleCoef_f * (distMinRight_f / distMinLeft_f - 1);
 	}
+	angle = min(max(-0.4,angle),0.4);
 	
 	ROS_INFO("angle = %f",angle);
 
@@ -90,7 +91,7 @@ double SensorNode::minDisRight(int startIndex, int endIndex, const sensor_msgs::
 			minIndex = i;
 		}
 	}
-	dist = (msg->ranges[minIndex]>max_dis)?max_dis:msg->ranges[minIndex];
+	dist = min(max(msg->ranges[minIndex],min_dis),max_dis);
 	return dist;
 }
 
@@ -105,6 +106,18 @@ double SensorNode::minDisLeft(int startIndex, int endIndex, const sensor_msgs::L
 			minIndex = i;
 		}
 	}
-	dist = (msg->ranges[minIndex]>max_dis)?max_dis:msg->ranges[minIndex];
+	dist = min(max(msg->ranges[minIndex],min_dis),max_dis);
+	return dist;
+}
+
+double max(double a,double b)
+{
+	double dist = (a>b)?a:b;
+	return dist;
+}
+
+double min(double a,double b)
+{
+	double dist = (a>b)?b:a;
 	return dist;
 }
