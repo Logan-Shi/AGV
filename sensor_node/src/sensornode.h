@@ -17,7 +17,8 @@
 * vehicle. In this case robot find minimal value on the left and right
 * side and goes, where the value is higher.
 */
-
+double max(double,double);
+double min(double,double);
 class SensorNode
 {
 public:
