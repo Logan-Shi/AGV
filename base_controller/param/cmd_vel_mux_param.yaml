@@ -10,17 +10,13 @@ subscribers:
     topic:       "input/teleop"
     timeout:     1.0
     priority:    10
-  # - name:        "ObstacleAvoid"
-  #   topic:       "input/avoid"
-  #   timeout:     1.0
-  #   priority:    7
   - name:        "Laser"
     topic:       "input/laser"
-    timeout:     1.0
+    timeout:     0.1
     priority:    4
   - name:        "Navigation"
     topic:       "input/navi"
-    timeout:     1.0
+    timeout:     0.1
     priority:    5
 
 publisher:       "/cmd_vel_mux/output"

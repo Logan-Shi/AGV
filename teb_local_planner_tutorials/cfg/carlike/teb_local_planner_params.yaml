@@ -10,11 +10,11 @@ TebLocalPlannerROS:
  max_samples: 500
  global_plan_overwrite_orientation: False
  allow_init_with_backwards_motion: False
- max_global_plan_lookahead_dist: 3.0 # should increase with max_vel_x, should not exceed lidar detection distance and local_cost_map 
+ max_global_plan_lookahead_dist: 10.0 # should increase with max_vel_x, should not exceed lidar detection distance and local_cost_map 
  global_plan_viapoint_sep: 0.5
  global_plan_prune_distance: 1
  exact_arc_length: False
- feasibility_check_no_poses: 5
+ feasibility_check_no_poses: 10
  publish_feedback: False
     
  # Robot
@@ -68,7 +68,7 @@ TebLocalPlannerROS:
 
  # Optimization
     
- no_inner_iterations: 5
+ no_inner_iterations: 8
  no_outer_iterations: 1
  optimization_activate: True
  optimization_verbose: False

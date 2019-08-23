@@ -45,8 +45,8 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	//This cycle goes through array and finds minimum on the left and right
 	distMinLeft = minDisLeft(min_index, max_index, msg);
 	distMinRight = minDisRight(min_index, max_index, msg);
-	distMinLeft_f = minDisLeft(0,size/36, msg);
-	distMinRight_f = minDisRight(0,size/36, msg);
+	distMinLeft_f = minDisLeft(0,min_index, msg);
+	distMinRight_f = minDisRight(0,min_index, msg);
 
 	ROS_INFO("distMinRight = %f",distMinRight);
 	ROS_INFO("distMinLeft = %f",distMinLeft);
@@ -71,7 +71,7 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	{
 		angle += angleCoef_f * (distMinRight_f / distMinLeft_f - 1);
 	}
-	angle = min(max(-0.4,angle),0.4);
+	angle = min(max(-0.48,angle),0.48);
 	
 	ROS_INFO("angle = %f",angle);
 
