@@ -47,26 +47,8 @@ set(CMAKE_CXX_FLAGS "-march=native -ffast-math -fno-math-errno ${CMAKE_CXX_FLAGS
 
 set(CMAKE_BUILD_TYPE Release)
 
-if (WITH_CUDA)
-	add_definitions(-DUSE_CUDA=1)
-	add_definitions(-DCHUNK_SIZE=${CHUNK_SIZE})
-	add_definitions(-DNUM_THREADS=${CHUNK_THREADS})
-
-	file(GLOB CUDA_SRCS 
-		main.cpp 
-		"includes/kernels.cu"
-		"vendor/lodepng/lodepng.cpp" )
-
-	# set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-7.5")
-	find_package(CUDA REQUIRED)
-
-	cuda_add_executable(range_lib ${CUDA_SRCS})
-	# message(${CUDA_VERSION})
-
-else()
-	add_definitions(-DUSE_CUDA=0)
-	add_executable(range_lib ${SRCS})
-endif()
+add_definitions(-DUSE_CUDA=0)
+add_executable(range_lib ${SRCS})
 
 
 target_link_libraries(range_lib gflags pthread)
