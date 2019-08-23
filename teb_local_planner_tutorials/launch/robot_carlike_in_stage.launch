@@ -23,18 +23,18 @@
        <rosparam command="load" file="$(find base_controller)/param/laser_config_sim.yaml" />
        <!-- <remap from="scan" to="base_scan" /> -->
     </node>
-    <include file="$(find base_controller)/launch/gmapping.launch" />
+    <!-- <include file="$(find base_controller)/launch/gmapping.launch" /> -->
 
     <!--  ************** Navigation ***************  -->
-    <include file="$(find base_controller)/launch/move_base.launch" />
+    <!-- <include file="$(find base_controller)/launch/move_base.launch" /> -->
 
 
 	<!--  ****** Maps *****  -->
-<!--   <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_2.yaml" output="screen">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_2.yaml" output="screen">
                 <param name="frame_id" value="map"/>
   </node>
 
-  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+<!--   <node pkg="amcl" type="amcl" name="amcl" output="screen">
     <rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
 
           <param name="initial_pose_x"            value="0"/>

@@ -27,9 +27,9 @@
 		publish_odom: whether or not to publish inferred pose as an odometry message.
 		              publishes on /pf/pose/odom
 	 -->
-	<include file="$(find ta_lab5)/launch/map_server.launch"/>
+	<!-- <include file="$(find ta_lab5)/launch/map_server.launch"/> -->
 
-	<arg name="scan_topic" default="/scan"/>
+	<arg name="scan_topic" default="/scan_filtered"/>
 	<!-- <arg name="odometry_topic" default="/vesc/odom"/> -->
 	<arg name="odometry_topic" default="/odom"/>
 	<arg name="angle_step" default="18"/>

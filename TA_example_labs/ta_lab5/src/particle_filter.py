@@ -81,6 +81,9 @@ class ParticleFiler():
 
         # particle poses and weights
         self.inferred_pose = None
+        self.position = None
+        self.orientation = None
+        self.odom_orientation = None
         self.particle_indices = np.arange(self.MAX_PARTICLES)
         self.particles = np.zeros((self.MAX_PARTICLES, 3))
         self.weights = np.ones(self.MAX_PARTICLES) / float(self.MAX_PARTICLES)
@@ -158,8 +161,8 @@ class ParticleFiler():
             stamp = rospy.Time.now()
 
         # this may cause issues with the TF tree. If so, see the below code.
-        self.pub_tf.sendTransform((pose[0],pose[1],0),tf.transformations.quaternion_from_euler(0, 0, pose[2]), 
-               stamp , "/laser", "/map")
+        # self.pub_tf.sendTransform((pose[0],pose[1],0),tf.transformations.quaternion_from_euler(0, 0, pose[2]), 
+        #        stamp , "/laser", "/map")
 
         # also publish odometry to facilitate getting the localization pose
         if self.PUBLISH_ODOM:
@@ -170,7 +173,7 @@ class ParticleFiler():
             odom.pose.pose.orientation = Utils.angle_to_quaternion(pose[2])
             self.odom_pub.publish(odom)
         
-        return # below this line is disabled
+        # return # below this line is disabled
 
         """
         Our particle filter provides estimates for the "laser" frame
@@ -189,9 +192,18 @@ class ParticleFiler():
         # This gives a map -> base_link transform
         laser_base_link_offset = (0.265, 0, 0)
         map_laser_pos -= np.dot(tf.transformations.quaternion_matrix(tf.transformations.unit_vector(map_laser_rotation))[:3,:3], laser_base_link_offset).T
+        
+        map_laser_pos[0] -= self.position[0]
+        map_laser_pos[1] -= self.position[1]
+
+        orientation_list = [self.odom_orientation.x,self.odom_orientation.y,self.odom_orientation.z,self.odom_orientation.w]
+        (roll,pitch,odom_base_link_yaw) = tf.transformations.euler_from_quaternion(orientation_list)
+        map_odom_yaw = pose[2] - odom_base_link_yaw
+
+        map_odom_rotation = np.array(tf.transformations.quaternion_from_euler(0,0,map_odom_yaw))
 
         # Publish transform
-        self.pub_tf.sendTransform(map_laser_pos, map_laser_rotation, stamp , "/base_link", "/map")
+        self.pub_tf.sendTransform(map_laser_pos, map_odom_rotation, stamp , "/odom", "/map")
 
     def visualize(self):
         '''
@@ -264,20 +276,20 @@ class ParticleFiler():
 
         Odometry data is accumulated via dead reckoning, so it is very inaccurate on its own.
         '''
-        position = np.array([
+        self.position = np.array([
             msg.pose.pose.position.x,
             msg.pose.pose.position.y])
-
-        orientation = Utils.quaternion_to_angle(msg.pose.pose.orientation)
-        pose = np.array([position[0], position[1], orientation])
-
+        self.odom_orientation = msg.pose.pose.orientation
+        self.orientation = Utils.quaternion_to_angle(msg.pose.pose.orientation)
+        pose = np.array([self.position[0], self.position[1], self.orientation])
+ 
         if isinstance(self.last_pose, np.ndarray):
             rot = Utils.rotation_matrix(-self.last_pose[2])
-            delta = np.array([position - self.last_pose[0:2]]).transpose()
+            delta = np.array([self.position - self.last_pose[0:2]]).transpose()
             local_delta = (rot*delta).transpose()
 
             # changes in x,y,theta in local coordinate system of the car
-            self.odometry_data = np.array([local_delta[0,0], local_delta[0,1], orientation - self.last_pose[2]])
+            self.odometry_data = np.array([local_delta[0,0], local_delta[0,1], self.orientation - self.last_pose[2]])
             self.last_pose = pose
             self.last_stamp = msg.header.stamp
             self.odom_initialized = True

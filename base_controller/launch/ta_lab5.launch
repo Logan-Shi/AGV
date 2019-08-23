@@ -1,0 +1,23 @@
+<launch>
+
+  <!--  ************** Bot bringup ***************  -->
+  <include file="$(find base_controller)/launch/base_controller.launch" />
+	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
+	
+  <!--  ************** Localization ***************  -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_2.yaml" output="screen">
+    <param name="frame_id" value="map"/>
+  </node>
+
+  <include file="$(find ta_lab5)/launch/localize.launch" />
+
+
+  <!--  ************** Navigation ***************  -->
+  <include file="$(find base_controller)/launch/move_base.launch" />
+
+
+
+	<!--  **************** Visualisation ****************  -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find base_controller)/navigation.rviz"/>
+
+</launch>
