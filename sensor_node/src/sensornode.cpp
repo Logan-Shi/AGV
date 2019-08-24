@@ -75,8 +75,12 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	
 	ROS_INFO("angle = %f",angle);
 
-	double v = robotSpeed;
+	double v = robotSpeed - 0.5 * abs(angle);
 	
+	ROS_INFO("v = %f",v);
+	ROS_INFO("robotSpeed = %f",robotSpeed);
+	ROS_INFO("abs(angle) = %f",abs(angle));
+
 	publishTwist(v,angle);
 }
 
@@ -120,4 +124,16 @@ double min(double a,double b)
 {
 	double dist = (a>b)?b:a;
 	return dist;
+}
+
+double abs(double data)
+{
+	if (data>0)
+	{
+		return data;
+	}
+	else
+	{
+		return - data;
+	}
 }

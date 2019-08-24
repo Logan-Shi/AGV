@@ -19,6 +19,7 @@
 */
 double max(double,double);
 double min(double,double);
+double abs(double);
 class SensorNode
 {
 public:

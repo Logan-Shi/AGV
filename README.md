@@ -35,4 +35,4 @@ hector_trajectory_server: Get the traveled trajectory
 ## Match Log
 
 done turning with last year node, not reassuring enough but not to shabby.
-try to publish target and think about lap strategy.
+try to run a lap

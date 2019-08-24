@@ -16,7 +16,7 @@ subscribers:
     priority:    4
   - name:        "Navigation"
     topic:       "input/navi"
-    timeout:     0.5
+    timeout:     0.2
     priority:    5
 
 publisher:       "/cmd_vel_mux/output"
