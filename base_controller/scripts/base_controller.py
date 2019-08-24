@@ -198,6 +198,10 @@ class base_controller():
             self.rate.sleep()
         
 if __name__=="__main__":
-    mode = rospy.get_param('mode', 'PID')
-    baseController = base_controller(mode)
-    baseController.spin()
+    try:
+        mode = rospy.get_param('mode', 'PID')
+        baseController = base_controller(mode)
+        baseController.spin()
+    except rospy.ROSInterruptException:
+        rospy.loginfo("base controller stopped.")
+    

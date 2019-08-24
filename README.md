@@ -34,8 +34,5 @@ hector_trajectory_server: Get the traveled trajectory
 
 ## Match Log
 
-problems:
-can't locate when too quick
-1. try decrease max_vel_x and see if it's better
-
-2. try last-year node
+done turning with last year node, not reassuring enough but not to shabby.
+try to publish target and think about lap strategy.
