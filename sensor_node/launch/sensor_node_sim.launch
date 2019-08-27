@@ -7,7 +7,7 @@
       <param name="MAX_DIS"   type="double" value="5.4"/>
       <param name="MAX_DIS_F"   type="double" value="5.4"/>
       <param name="MAX_ANGLE"    type="int" value="170"/>
-      <param name="MIN_DIS"   type="double" value="0.21"/>
+      <param name="MIN_DIS"   type="double" value="0.4"/>
   </node>
   
 </launch>

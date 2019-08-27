@@ -75,9 +75,10 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	
 	ROS_INFO("angle = %f",angle);
 	double v = robotSpeed;
-	if (min(distMinLeft_f,distMinRight_f)<0.2)
+	if (0 && min(distMinLeft_f,distMinRight_f) < min_dis)
 	{
 		v = 0;
+		angle = 0;
 	}
 	else
 	{
@@ -91,29 +92,48 @@ double SensorNode::minDisRight(int startIndex, int endIndex, const sensor_msgs::
 {
 	
 	int minIndex = endIndex;
-	double dist = max_dis;
-	for (int i = startIndex; i < endIndex; i++)
-	{
-		if (msg->ranges[i] < msg->ranges[minIndex] && msg->ranges[i] > min_dis) {
-			minIndex = i;
-		}
-	}
-	dist = min(max(msg->ranges[minIndex],min_dis),max_dis);
-	return dist;
+	printf("calculating minDisRight, ");
+	return minDis(startIndex, endIndex, minIndex, msg);
 }
 
 double SensorNode::minDisLeft(int startIndex, int endIndex, const sensor_msgs::LaserScan::ConstPtr& msg)
 {
 	
 	int minIndex = size - startIndex;
+	int _startIndex = size - endIndex;
+	int _endIndex = size - startIndex;
+	printf("calculating minDisLeft, ");
+	return minDis(_startIndex, _endIndex, minIndex, msg);
+
+}
+
+double SensorNode::minDis(int startIndex,int endIndex,int minIndex, const sensor_msgs::LaserScan::ConstPtr& msg)
+{
+	printf("startIndex = %d, endIndex = %d, minIndex = %d\n",startIndex,endIndex,minIndex);
+	int counter = 0;
 	double dist = max_dis;
-	for (int i = size - endIndex; i < size - startIndex; i++)
+	double temp_dist = 999;
+	for (int i = startIndex; i <= endIndex; i++)
 	{
-		if (msg->ranges[i] < msg->ranges[minIndex] && msg->ranges[i] > min_dis) {
-			minIndex = i;
+		if (msg->intensities[i] < 0.1)
+		{
+			continue;
+		}
+		else
+		{
+			printf("ranges[%d] = %f\n",i,msg->ranges[i]);
+			if (msg->ranges[i] < temp_dist && msg->ranges[i] > 0.01) 
+			{
+				temp_dist = msg->ranges[i];
+				counter++;
+			}
+			printf("counter = %d\n",counter);
 		}
 	}
-	dist = min(max(msg->ranges[minIndex],min_dis),max_dis);
+
+	
+	dist = min(temp_dist,max_dis);
+	printf("dist is %f\n",dist);
 	return dist;
 }
 
