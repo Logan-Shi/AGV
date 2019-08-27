@@ -8,4 +8,5 @@
   </node>
   <node pkg="tf" type="static_transform_publisher" name="laser_link_broadcaster" args="0.55 0 0 3.14 0 0 base_link laser 20" />
   <include file="$(find base_controller)/launch/cmd_vel_mux.launch"/>
+  <node pkg="ta_lab3" type="safety.py" name="safetyStopper" output="screen"/>
 </launch>
