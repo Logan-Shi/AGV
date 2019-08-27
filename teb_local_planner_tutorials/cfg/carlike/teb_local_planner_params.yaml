@@ -46,7 +46,7 @@ TebLocalPlannerROS:
  # GoalTolerance
     
  xy_goal_tolerance: 0.5
- yaw_goal_tolerance: 0.5
+ yaw_goal_tolerance: 0.1
  free_goal_vel: False # stop at goal
  complete_global_plan: True
     
@@ -82,7 +82,7 @@ TebLocalPlannerROS:
  weight_kinematics_forward_drive: 1000
  weight_kinematics_turning_radius: 1000
  weight_optimaltime: 500 # must be > 0
- weight_shortest_path: 1
+ weight_shortest_path: 100
  weight_obstacle: 20
  weight_inflation: 1
  weight_dynamic_obstacle: 0 # not in use yet

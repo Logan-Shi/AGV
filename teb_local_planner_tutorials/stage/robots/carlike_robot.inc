@@ -2,9 +2,9 @@ define laser ranger
 (
   sensor
   (
-    range_max 100
+    samples 1440
+    range [0.0 25.0]
     fov 350 # the angular field of view of the scanner, in degrees.
-    samples 640
   )
   # generic model properties
   color "black"
@@ -21,7 +21,7 @@ define carlike_robot position
 (
   pose [ 0.0 0.0 0.0 0.0 ]
 
-  odom_error [0.5 0.5 0.0 0.0 0.0 0.5]
+  odom_error [0.0 0.0 0.0 0.0 0.0 0.0]
 
   size [ 0.8 0.44 0.40 ] # this models the footprint (rectangular), but shifted such that the bottom-left corner is in [0,0]. The center of rotation now here at [0.425, 0.27, 0.2]
   # correct center of rotation:

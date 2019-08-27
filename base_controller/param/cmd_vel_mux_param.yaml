@@ -6,6 +6,10 @@
 #   short_desc:     Short description (optional)
 
 subscribers:
+  - name:        "Assigner"
+    topic:       "input/assigner"
+    timeout:     0.2
+    priority:    12
   - name:        "FrontStop"
     topic:       "input/safety"
     timeout:     1.0
@@ -23,4 +27,4 @@ subscribers:
     timeout:     0.1
     priority:    4
 
-publisher:       "/cmd_vel_mux/output"
+publisher:       "/cmd_vel"

@@ -31,14 +31,25 @@ window
 floorplan
 (
   name "maze"
-  bitmap "../maps/experiment_2.png"
-  size [ 43.25 15.000 1.000 ]
+  bitmap "../maps/experiment_4.png"
+  size [ 17.8 7.7 1.000 ]
   pose [  0.000  0.000 0.000 0.000 ]
+)
+
+model
+(
+  name "pedestrian"
+  pose [0 3 0 0]
+  size [0.2 0.2 2]
+
+  color "blue"
+
+  laser_return 1
 )
 
 # throw in a robot
 carlike_robot
 (
-  pose [ 11.000 1.500 0.000 0.000 ]
+  pose [ -8.000 -1.000 0.000 0.000 ]
   name "robot"
 )

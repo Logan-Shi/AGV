@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import rospy
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import UInt8
 from std_msgs.msg import String, Header
-from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 from geometry_msgs.msg import Twist
 from threading import Thread #imsosorry
 
@@ -38,8 +38,8 @@ float32[] intensities # intensity data [device-specific units]. If your
 
 """
 
-MIN_FRONT_DIST = 0.4 # meters
-FAN_ANGLE = 15.0 # angle that is considered the front
+MIN_FRONT_DIST = 1 # meters
+FAN_ANGLE = 20 # angle that is considered the front
 N_BINS = 19
 
 class Safety():
@@ -54,6 +54,8 @@ class Safety():
         self.sub = rospy.Subscriber("/scan_filtered", LaserScan, self.lidarCB, queue_size=1)
         self.pub = rospy.Publisher("cmd_vel_mux/input/safety",\
                 Twist, queue_size =1 )
+        self.laserPub = rospy.Publisher('isFront', UInt8, queue_size=1)
+        self.isFrontMsg = UInt8()
         self.thread = Thread(target=self.drive)
         self.thread.start()
         rospy.loginfo("safety node initialized")
@@ -65,14 +67,18 @@ class Safety():
                 continue
 
             if np.any(self.parsed_data['front'][:,0] < MIN_FRONT_DIST):
-                rospy.loginfo("stoping!")
+                # rospy.loginfo("pedestrian detected!")
                 # this is overkill to specify the message, but it doesn't hurt
                 # to be overly explicit
-                drive_msg = Twist()
-                drive_msg.linear.x = 0.0
-                drive_msg.angular.z = 0.0
-                self.pub.publish(drive_msg)
-            
+                # drive_msg = Twist()
+                # drive_msg.linear.x = 0.0
+                # drive_msg.angular.z = 0.0
+                # self.pub.publish(drive_msg)
+                self.isFrontMsg = 1
+            else:
+                self.isFrontMsg = 0
+            # rospy.loginfo('isFrontMsg = '+str(self.isFrontMsg))
+            self.laserPub.publish(self.isFrontMsg)            
             # don't spin too fast
             rospy.sleep(.1)
 
