@@ -27,4 +27,4 @@ subscribers:
     timeout:     0.1
     priority:    4
 
-publisher:       "/cmd_vel"
+publisher:       "/cmd_vel_mux/output"

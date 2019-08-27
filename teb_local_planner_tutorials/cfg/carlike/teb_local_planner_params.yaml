@@ -19,7 +19,7 @@ TebLocalPlannerROS:
     
  # Robot
          
- max_vel_x: 1.0
+ max_vel_x: 0.5
  max_vel_x_backwards: 0.02
  max_vel_y: 0.0
  max_vel_theta: 4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)

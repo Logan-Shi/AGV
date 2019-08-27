@@ -8,17 +8,17 @@ global_frame_id: "map"
 odom_model_type: "diff"
 odom_alpha5: 0.1
 gui_publish_rate: 10.0
-laser_max_beams: 60
-laser_max_range: 12.0
+laser_max_beams: 250
+laser_max_range: 25.0
 min_particles: 500
-max_particles: 2000
-kld_err: 0.05
+max_particles: 10000
+kld_err: 0.01
 kld_z: 0.99
-odom_alpha1: 0.2
-odom_alpha2: 0.2
+odom_alpha1: 4.0
+odom_alpha2: 2.0
 ## translation std dev, m 
 odom_alpha3: 0.2
-odom_alpha4: 0.2
+odom_alpha4: 4.0
 laser_z_hit: 0.5
 aser_z_short: 0.05
 laser_z_max: 0.05
