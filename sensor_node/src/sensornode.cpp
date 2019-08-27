@@ -74,13 +74,16 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	angle = min(max(-0.48,angle),0.48);
 	
 	ROS_INFO("angle = %f",angle);
-
-	double v = robotSpeed - 0.5 * abs(angle);
-	
+	double v = robotSpeed;
+	if (min(distMinLeft_f,distMinRight_f)<0.2)
+	{
+		v = 0;
+	}
+	else
+	{
+		v = robotSpeed - 0.5 * abs(angle);
+	}
 	ROS_INFO("v = %f",v);
-	ROS_INFO("robotSpeed = %f",robotSpeed);
-	ROS_INFO("abs(angle) = %f",abs(angle));
-
 	publishTwist(v,angle);
 }
 
