@@ -65,6 +65,7 @@ private:
 	double max_dis;            // detect distance
 	double distMinLeft;        // Minimum distance masured by sensor on the left.
 	double distMinRight;
+	double distFront;
 
 	double angleCoef_f;       // Coeficient for transfering angles to speed.
 	double max_dis_f;            // detect distance
