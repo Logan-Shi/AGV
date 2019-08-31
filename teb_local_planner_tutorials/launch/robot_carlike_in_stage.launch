@@ -24,7 +24,8 @@
        <!-- <remap from="scan" to="base_scan" /> -->
     </node>
 <!--     <include file="$(find base_controller)/launch/gmapping.launch" /> -->
-
+    <node pkg="base_controller" type="assigner.py" name="assigner" output="screen"/>
+    <include file="$(find sensor_node)/launch/sensor_node_sim.launch" />
     <!--  ************** Navigation ***************  -->
     <include file="$(find base_controller)/launch/move_base.launch" />
     <node pkg="ta_lab3" type="safety.py" name="safetyStopper" output="screen"/>
