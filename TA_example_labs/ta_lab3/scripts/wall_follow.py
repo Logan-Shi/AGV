@@ -9,7 +9,7 @@ from sensor_msgs.msg import LaserScan
 from scipy import signal, stats
 import matplotlib.pyplot as plt
 import math
-from geometry_msgs.msg import Polygon, Point32, PolygonStamped
+from geometry_msgs.msg import Polygon, Point32, PolygonStamped, Twist
 
 RIGHT = 'right'
 LEFT  = 'left'
@@ -96,9 +96,9 @@ class WallFollow():
             self.viz = DynamicPlot()
             self.viz.initialize()
         
-        self.pub = rospy.Publisher("/vesc/high_level/ackermann_cmd_mux/input/nav_0",\
-                AckermannDriveStamped, queue_size =1 )
-        self.sub = rospy.Subscriber("/scan", LaserScan, self.lidarCB, queue_size=1)
+        self.pub = rospy.Publisher("/cmd_vel_mux/input/laser",\
+                Twist, queue_size =1 )
+        self.sub = rospy.Subscriber("/scan_filtered", LaserScan, self.lidarCB, queue_size=1)
         
         if PUBLISH_LINE:
             self.line_pub = rospy.Publisher("/viz/line_fit", PolygonStamped, queue_size =1 )
@@ -183,15 +183,10 @@ class WallFollow():
 
                 # print smoothed_steering, self.control[0]
                 
-                drive_msg_stamped = AckermannDriveStamped()
-                drive_msg = AckermannDrive()
-                drive_msg.speed = self.control[1]
-                drive_msg.steering_angle = smoothed_steering
-                drive_msg.acceleration = 0
-                drive_msg.jerk = 0
-                drive_msg.steering_angle_velocity = 0
-                drive_msg_stamped.drive = drive_msg
-                self.pub.publish(drive_msg_stamped)
+                drive_msg = Twist()
+                drive_msg.linear.x = self.control[1]
+                drive_msg.angular.z = smoothed_steering
+                self.pub.publish(drive_msg)
 
                 rospy.sleep(1.0/PUBLISH_RATE)
 
