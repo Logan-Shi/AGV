@@ -23,14 +23,14 @@
        <rosparam command="load" file="$(find base_controller)/param/laser_config_sim.yaml" />
        <!-- <remap from="scan" to="base_scan" /> -->
     </node>
-    <!-- <include file="$(find base_controller)/launch/gmapping.launch" /> -->
+<!--     <include file="$(find base_controller)/launch/gmapping.launch" /> -->
 
     <!--  ************** Navigation ***************  -->
     <include file="$(find base_controller)/launch/move_base.launch" />
     <node pkg="ta_lab3" type="safety.py" name="safetyStopper" output="screen"/>
 
 	<!--  ****** Maps *****  -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_3.yaml" output="screen">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_4.yaml" output="screen">
                 <param name="frame_id" value="map"/>
   </node>
 
