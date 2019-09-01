@@ -3,6 +3,7 @@
 
 import rospy
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist
+from std_msgs.msg import UInt8
 import actionlib
 import tf
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -13,7 +14,7 @@ class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
         self.arg = arg
-        self.rate = rospy.Rate(2)
+        self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
                             'SUCCEEDED', 'ABORTED', 'REJECTED', 
@@ -31,7 +32,7 @@ class assigner():
         self.right_turn_pose = Pose(Point(9,-2.3,0),Quaternion(0,0,0,1))
         self.exit_turn_pose = Pose(Point(13,0,0),Quaternion(0,0,0,1))
         self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
-        self.park_request_pose = Pose(Point(5,4,0),Quaternion(0,0,1,0))
+        self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
         self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
         self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
         self.pose = Pose()
@@ -39,7 +40,12 @@ class assigner():
         self.map_base_link_tf_listener = tf.TransformListener()
         self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner",\
                 Twist, queue_size =1 )
+        rospy.Subscriber('isFront', UInt8, self.isFrontCallback)
+        self.isFrontMsg = UInt8()
         rospy.sleep(1)
+
+    def isFrontCallback(self,msg):
+        self.isFrontMsg = msg.data
 
     def sendGoal(self,pose):
         self.client.wait_for_server()
@@ -78,7 +84,7 @@ class assigner():
         rospy.loginfo("pose = \n" + str(self.pose))
 
     def waitforLight(self):
-        while self.state == self.car_states['LIGHT']:
+        if self.state == self.car_states['LIGHT']:
             lightStatus = 1
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
@@ -94,21 +100,21 @@ class assigner():
                     self.state = self.car_states['LEFT']
                 
     def turnRight(self):
-        while self.state == self.car_states['RIGHT']:
+        if self.state == self.car_states['RIGHT']:
             if not self.sendGoal(self.right_turn_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['RIGHT']
 
     def turnLeft(self):
-        while self.state == self.car_states['LEFT']:
+        if self.state == self.car_states['LEFT']:
             if not self.sendGoal(self.left_turn_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['LEFT']
 
     def exitTurn(self):
-        while self.state == self.car_states['EXITTURN']:
+        if self.state == self.car_states['EXITTURN']:
             rospy.loginfo('exiting turn')
             if not self.sendGoal(self.exit_turn_pose):
                 self.state = self.car_states['STRAIGHT']
@@ -116,7 +122,7 @@ class assigner():
                 self.state = self.car_states['EXITTURN']
 
     def goStraight(self):
-        while self.state == self.car_states['STRAIGHT']:
+        if self.state == self.car_states['STRAIGHT']:
             self.client.cancel_goal()
             if self.isArrived(self.straight_lane_pose):
                 self.state = self.car_states['DYNAMIC']
@@ -126,7 +132,7 @@ class assigner():
     def isArrived(self,pose):
         isArrived = 0
         self.updatePose()
-        if self.abs(self.pose.position.x - pose.position.x) < 0.1 and \
+        if self.abs(self.pose.position.x - pose.position.x) < 0.2 and \
            self.abs(self.pose.position.y - pose.position.y) < 0.5:
             isArrived = 1
             rospy.loginfo('target reached!')
@@ -135,16 +141,19 @@ class assigner():
         return isArrived
 
     def waitforDynamicObj(self):
-        while self.state == self.car_states['DYNAMIC']: 
+        if self.state == self.car_states['DYNAMIC']: 
             rospy.loginfo('waiting for dynamic obj')
-            isFront = 0
+            isFront = self.isFrontMsg
             if isFront:
                 rospy.loginfo('pedestrian detected, stopping...')
                 self.stop()
                 self.state = self.car_states['DYNAMIC']
             else:
-                rospy.loginfo('passage way clear!')
-                self.state = self.car_states['PARK']
+                if self.isArrived(self.straight_exit_pose):
+                    rospy.loginfo('pedestrian crossing passed!')
+                    self.state = self.car_states['PARK']
+                else:
+                    self.state = self.car_states['DYNAMIC']
 
     def abs(self,a):
         if a>0:
@@ -153,7 +162,7 @@ class assigner():
             return -a
 
     def park(self):
-        while self.state == self.car_states['PARK']:
+        if self.state == self.car_states['PARK']:
             park = 1
             if park == 1:
                 if not self.sendGoal(self.park_one_pose):
@@ -165,7 +174,7 @@ class assigner():
                     rospy.loginfo('parked into spot two')
                 else:
                     self.state == self.car_states['PARK']
-        
+    
     def _shutdown(self):
         self.client.cancel_goal()
         self.stop()

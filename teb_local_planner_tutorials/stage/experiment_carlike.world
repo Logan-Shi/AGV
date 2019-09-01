@@ -36,6 +36,17 @@ floorplan
   pose [  0.000  0.000 0.000 0.000 ]
 )
 
+model
+(
+  name "pedestrian"
+  pose [0 3 0 0]
+  size [0.2 0.2 2]
+
+  color "blue"
+
+  laser_return 1
+)
+
 # throw in a robot
 carlike_robot
 (
