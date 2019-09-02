@@ -8,14 +8,14 @@
 speed_lim_v: 1.5
 
 speed_lim_w: 4
-accel_lim_v: 0.5
+accel_lim_v: 0.2
 
 accel_lim_w: 10
 # Optional parameters
 
 frequency: 20.0
 
-decel_factor: 1.0
+decel_factor: 4.0
 # Robot velocity feedback type:
 
 #  0 – none

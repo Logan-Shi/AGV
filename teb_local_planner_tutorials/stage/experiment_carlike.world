@@ -22,25 +22,25 @@ interval_sim 100  # simulation timestep in milliseconds
 
 window
 (
-  size [ 600 700 ]
-  center [ 4.000 3.383 ]
+  size [ 981 700 ]
+  center [ -0.016 -0.738 ]
   rotate [ 0.000 0.000 ]
-  scale 60.000
+  scale 49.587
 )
 
 floorplan
 (
   name "maze"
   bitmap "../maps/experiment_4.png"
-  size [ 17.8 7.7 1.000 ]
+  size [ 17.800 7.700 1.000 ]
   pose [  0.000  0.000 0.000 0.000 ]
 )
 
 model
 (
   name "pedestrian"
-  pose [0 3 0 0]
-  size [0.2 0.2 2]
+  pose [0.000 3.000 0.000 0.000]
+  size [0.200 0.200 2.000]
 
   color "blue"
 
