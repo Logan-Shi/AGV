@@ -224,7 +224,7 @@ class assigner():
 
 if __name__ == '__main__':
     try:
-        assigner = assigner()
+        assigner = assigner(1)
         assigner.spin()
     except rospy.ROSInterruptException:
         rospy.loginfo("AMCL navigation finished.")

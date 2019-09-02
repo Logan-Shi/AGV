@@ -28,7 +28,7 @@ class assigner():
                            'PARK'     : 6,
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
-        self.state = 0
+        self.state = 1
         self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
         self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
         self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
@@ -90,7 +90,7 @@ class assigner():
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
-            lightStatus = 1
+            lightStatus = 2
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
                 self.stop()

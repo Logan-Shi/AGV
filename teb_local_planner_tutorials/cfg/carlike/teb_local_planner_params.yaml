@@ -5,7 +5,7 @@ TebLocalPlannerROS:
  # Trajectory
   
  teb_autosize: True
- dt_ref: 0.2
+ dt_ref: 0.8
  dt_hysteresis: 0.1
  max_samples: 500
  global_plan_overwrite_orientation: False
@@ -14,17 +14,17 @@ TebLocalPlannerROS:
  global_plan_viapoint_sep: 0.5
  global_plan_prune_distance: 1
  exact_arc_length: False
- feasibility_check_no_poses: 10
+ feasibility_check_no_poses: 1
  publish_feedback: False
     
  # Robot
          
  max_vel_x: 0.5
- max_vel_x_backwards: 0.02
+ max_vel_x_backwards: 0.2
  max_vel_y: 0.0
- max_vel_theta: 4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
+ max_vel_theta: 1 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
  acc_lim_x: 1.0
- acc_lim_theta: 10
+ acc_lim_theta: 0.3
 
  # ********************** Carlike robot parameters ********************
  min_turning_radius: 1.2        # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
@@ -41,7 +41,7 @@ TebLocalPlannerROS:
    front_radius: 0.35 # for type "two_circles"
    rear_offset: -0.19 # for type "two_circles"
    rear_radius: 0.35 # for type "two_circles"
-   vertices: [ [0.65,-0.25], [-0.15,-0.25], [-0.15,0.25], [0.65,0.25] ] # for type "polygon"
+   vertices: [ [0.65,-0.20], [-0.15,-0.20], [-0.15,0.20], [0.65,0.20] ] # for type "polygon"
 
  # GoalTolerance
     
@@ -52,7 +52,7 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.0 # This value must also include our robot's expansion, since footprint_model is set to "line".
+ min_obstacle_dist: 0.04 # This value must also include our robot's expansion, since footprint_model is set to "line".
  inflation_dist: 0.6
  include_costmap_obstacles: True # True to avoid dynamic obstacles
  costmap_obstacles_behind_robot_dist: 1.0
@@ -80,14 +80,14 @@ TebLocalPlannerROS:
  weight_acc_lim_theta: 1
  weight_kinematics_nh: 10000
  weight_kinematics_forward_drive: 0
- weight_kinematics_turning_radius: 1000
- weight_optimaltime: 250 # must be > 0
- weight_shortest_path: 100
- weight_obstacle: 0
+ weight_kinematics_turning_radius: 10
+ weight_optimaltime: 25 # must be > 0
+ weight_shortest_path: 10
+ weight_obstacle: 10
  weight_inflation: 0.1
  weight_dynamic_obstacle: 0 # not in use yet
  weight_dynamic_obstacle_inflation: 0
- weight_viapoint: 0
+ weight_viapoint: 10
  weight_adapt_factor: 1
 
  # Homotopy Class Planner
