@@ -70,11 +70,12 @@ class Safety():
                 # rospy.loginfo("pedestrian detected!")
                 # this is overkill to specify the message, but it doesn't hurt
                 # to be overly explicit
-                # drive_msg = Twist()
-                # drive_msg.linear.x = 0.0
-                # drive_msg.angular.z = 0.0
-                # self.pub.publish(drive_msg)
                 self.isFrontMsg = 1
+                if np.any(self.parsed_data['front'][:,0] < 0.4):
+                    drive_msg = Twist()
+                    drive_msg.linear.x = -0.2
+                    drive_msg.angular.z = 0.0
+                    self.pub.publish(drive_msg)
             else:
                 self.isFrontMsg = 0
             # rospy.loginfo('isFrontMsg = '+str(self.isFrontMsg))

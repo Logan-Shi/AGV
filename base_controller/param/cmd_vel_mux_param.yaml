@@ -8,7 +8,7 @@
 subscribers:
   - name:        "FrontStop"
     topic:       "input/safety"
-    timeout:     1.0
+    timeout:     0.2
     priority:    14
   - name:        "Teleoperation"
     topic:       "input/teleop"
