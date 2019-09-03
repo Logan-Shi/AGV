@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 
 	//Creating publisher
 	ros::Publisher pubMessage = n.advertise<geometry_msgs::Twist>(PUBLISHER_TOPIC, PUBLISHER_BUFFER_SIZE);
+	ros::Publisher pubFrontMsg = n.advertise<std_msgs::UInt8>("isFront", PUBLISHER_BUFFER_SIZE);
 
 	ros::param::get("~ANGLE_COEF", ANGLE_COEF);
 	ros::param::get("~ANGLE_COEF_F", ANGLE_COEF_F);
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 	
 	//Creating object, which stores data from sensors and has methods for
 	//publishing and subscribing
-	SensorNode *nodeBraitenberg2 = new SensorNode(pubMessage, ANGLE_COEF, ROBOT_SPEED, MIN_DIS, MAX_DIS, MIN_ANGLE, MAX_ANGLE,ANGLE_COEF_F, MAX_DIS_F,DECEL);
+	SensorNode *nodeBraitenberg2 = new SensorNode(pubMessage,pubFrontMsg, ANGLE_COEF, ROBOT_SPEED, MIN_DIS, MAX_DIS, MIN_ANGLE, MAX_ANGLE,ANGLE_COEF_F, MAX_DIS_F,DECEL);
 
 	//Creating subscriber
 	ros::Subscriber sub = n.subscribe(SUBSCRIBER_TOPIC, SUBSCRIBER_BUFFER_SIZE, &SensorNode::messageCallback, nodeBraitenberg2);

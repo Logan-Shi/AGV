@@ -4,7 +4,7 @@ define laser ranger
   (
     samples 1440
     range [0.0 25.0]
-    fov 350 # the angular field of view of the scanner, in degrees.
+    fov 360 # the angular field of view of the scanner, in degrees.
   )
   # generic model properties
   color "black"
@@ -34,5 +34,5 @@ define carlike_robot position
   wheelbase 0.58 # distance between both axles
   
   # spawn sensors
-  laser(pose [ 0.3 0.0 0.0 3.14 ])
+  laser(pose [ 0.3 0.0 0.0 180 ])
 )

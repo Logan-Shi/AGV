@@ -12,7 +12,7 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.sim = 0 # 1 as sim
+        self.sim = 1 # 1 as sim
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
@@ -29,14 +29,14 @@ class assigner():
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
         self.indicator = 1 # 1 as left
-        self.state = 0
+        self.state = 4
         if self.sim:
-            self.start_turn_pose = Pose(Point(5.8,0,0),Quaternion(0,0,0,1)) 
+            self.start_turn_pose = Pose(Point(5.5,0,0),Quaternion(0,0,0,1)) 
             self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
             self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(11.15,0.6,0),Quaternion(0,0,-0.56,0.83))
-            self.exit_right_pose = Pose(Point(11.15,-0.6,0),Quaternion(0,0,0.56,0.83))
-            self.exit_turn_pose = Pose(Point(12,0,0),Quaternion(0,0,0,1))
+            self.exit_left_pose = Pose(Point(11.3,1.0,0),Quaternion(0,0,-0.4,0.90))
+            self.exit_right_pose = Pose(Point(11.3,-1.0,0),Quaternion(0,0,0.4,0.90))
+            self.exit_turn_pose = Pose(Point(11.7,0,0),Quaternion(0,0,0,1))
             self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
             self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
             self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))

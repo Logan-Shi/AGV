@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/UInt8.h"
 
 // #include "opencv2/opencv.hpp"
 // #include "opencv2/highgui/highgui.hpp"
@@ -31,7 +32,7 @@ public:
 	* speed     Value, which will be stored in robotSpeed.
 	*/
 
-	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int , double, double, double);
+	SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double ,double, int, int , double, double, double);
 
 	~SensorNode();
 
@@ -95,6 +96,7 @@ private:
 	// double filter(double in, std::vector<double> &Pt, int boundary);
 
 	ros::Publisher pubMessage; // Object for publishing messages.
+	ros::Publisher pubFrontMsg;
 };
 
 
