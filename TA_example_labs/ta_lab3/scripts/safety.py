@@ -63,9 +63,10 @@ class Safety():
     def drive(self):
         while not rospy.is_shutdown():
             if self.received_data is None or self.parsed_data is None:
-                rospy.sleep(0.5)
+                # rospy.sleep(0.5)
+                rospy.loginfo('skipped')
                 continue
-
+            
             if np.any(self.parsed_data['front'][:,0] < MIN_FRONT_DIST):
                 # rospy.loginfo("pedestrian detected!")
                 # this is overkill to specify the message, but it doesn't hurt
@@ -88,7 +89,7 @@ class Safety():
         if not self.received_data:
             rospy.loginfo("success! first message received")
             # cache laser scanner angles
-            self.angles = (np.arange(len(msg.ranges)) * msg.angle_increment) + msg.angle_min
+            self.angles = (np.arange(len(msg.ranges)) * msg.angle_increment)
             self.angles *= 180.0 / np.pi # convert to degrees
             
             # bins for chunking data
