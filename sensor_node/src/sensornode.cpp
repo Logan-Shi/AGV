@@ -1,12 +1,13 @@
 #include "sensornode.h"
 
 //Constructor and destructor
-SensorNode::SensorNode(ros::Publisher pub, double angleC, double speed, double _min_dis, double _max_dis, int _min_degree, 
+SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double _min_dis, double _max_dis, int _min_degree, 
 	int _max_degree, double angleC_f, double _max_dis_f, double _decelerator)
 {
 	angleCoef = angleC;
 	robotSpeed = speed;
 	pubMessage = pub;
+	pubFrontMsg = frontpub;
 	min_degree = _min_degree;
 	max_degree = _max_degree;
 	min_dis = _min_dis;
@@ -53,6 +54,18 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	ROS_INFO("distMinRight_f = %f",distMinRight_f);
 	ROS_INFO("distMinLeft_f = %f",distMinLeft_f);
 	
+	std_msgs::UInt8 frontMsg;
+	frontMsg.data = 0;
+	if (distMinRight_f < 1 or distMinLeft_f < 1)
+	{
+		frontMsg.data = 1;
+	}
+	else
+	{
+		frontMsg.data = 0;
+	}
+	pubFrontMsg.publish(frontMsg);
+
 	double angle = 0;
 	if (distMinLeft >= distMinRight)
 	{
