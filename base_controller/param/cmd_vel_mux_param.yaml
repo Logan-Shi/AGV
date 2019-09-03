@@ -13,11 +13,11 @@ subscribers:
   - name:        "Teleoperation"
     topic:       "input/teleop"
     timeout:     1.0
-    priority:    13
+    priority:    12
   - name:        "Assigner"
     topic:       "input/assigner"
     timeout:     1.0
-    priority:    12
+    priority:    11
   - name:        "Navigation"
     topic:       "input/navi"
     timeout:     0.2

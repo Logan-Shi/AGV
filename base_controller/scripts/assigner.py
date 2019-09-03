@@ -12,7 +12,7 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.sim = 1 # 1 as sim
+        self.sim = 0 # 1 as sim
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
@@ -29,7 +29,7 @@ class assigner():
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
         self.indicator = 1 # 1 as left
-        self.state = 4
+        self.state = 5
         if self.sim:
             self.start_turn_pose = Pose(Point(5.5,0,0),Quaternion(0,0,0,1)) 
             self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
