@@ -42,10 +42,10 @@ class assigner():
             self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
             self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
         else:
-            self.start_turn_pose = Pose(Point(5.14,-4.13,0),Quaternion(0,0,0.04,1)) 
+            self.start_turn_pose = Pose(Point(4.9,-3.98,0),Quaternion(0,0,0.04,1)) 
             self.left_turn_pose = Pose(Point(3.75,-3.92,0),Quaternion(0,0,0.59,0.8))
             self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(1.36,-2.64,0),Quaternion(0,0,-0.52,0.85))
+            self.exit_left_pose = Pose(Point(1.78,-2.84,0),Quaternion(0,0,-0.52,0.85))
             self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
             self.exit_turn_pose = Pose(Point(1.27,-1.67,0),Quaternion(0,0,0,1))
             self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
@@ -196,8 +196,8 @@ class assigner():
     def isArrived(self,pose):
         isArrived = 0
         self.updatePose()
-        if self.abs(self.pose.position.x - pose.position.x) < 0.5 and \
-           self.abs(self.pose.position.y - pose.position.y) < 0.5:
+        if self.abs(self.pose.position.x - pose.position.x) < 0.2 and \
+           self.abs(self.pose.position.y - pose.position.y) < 0.2:
             isArrived = 1
             rospy.loginfo('target reached!')
         else:

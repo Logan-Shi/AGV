@@ -14,7 +14,7 @@
 	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
 	
   <!--  ************** Localization ***************  -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment-turn.yaml" output="screen">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_5.yaml" output="screen">
     <param name="frame_id" value="map"/>
   </node>
 
