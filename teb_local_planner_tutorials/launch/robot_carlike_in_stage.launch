@@ -31,15 +31,15 @@
     <!-- <node pkg="ta_lab3" type="safety.py" name="safetyStopper" output="screen"/> -->
 
 	<!--  ****** Maps *****  -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_4.yaml" output="screen">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/experiment_5.yaml" output="screen">
                 <param name="frame_id" value="map"/>
   </node>
 
   <node pkg="amcl" type="amcl" name="amcl" output="screen">
     <rosparam file="$(find teb_local_planner_tutorials)/cfg/amcl_params.yaml" command="load" />
 
-          <param name="initial_pose_x"            value="0"/>
-    <param name="initial_pose_y"            value="0"/>
+          <param name="initial_pose_x"            value="-1.63"/>
+    <param name="initial_pose_y"            value="0.178"/>
     <param name="initial_pose_a"            value="0"/>
   </node>
 	<!--  **************** Visualisation ****************  -->

@@ -12,7 +12,7 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.sim = arg # 1 as sim
+        self.sim = 0 # 1 as sim
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
@@ -28,25 +28,26 @@ class assigner():
                            'PARK'     : 6,
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
+        self.indicator = 0 # 1 as left
         self.state = 0
-        if arg:
-            self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
+        if self.sim:
+            self.start_turn_pose = Pose(Point(5.8,0,0),Quaternion(0,0,0,1)) 
             self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
             self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(11.11,1.29,0),Quaternion(0,0,0.56,0.83))
-            self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
-            self.exit_turn_pose = Pose(Point(12.6,0,0),Quaternion(0,0,0,1))
+            self.exit_left_pose = Pose(Point(11.15,0.6,0),Quaternion(0,0,-0.56,0.83))
+            self.exit_right_pose = Pose(Point(11.15,-0.6,0),Quaternion(0,0,0.56,0.83))
+            self.exit_turn_pose = Pose(Point(12,0,0),Quaternion(0,0,0,1))
             self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
             self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
             self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
             self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
         else:
-            self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
-            self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
+            self.start_turn_pose = Pose(Point(5.14,-4.13,0),Quaternion(0,0,0.04,1)) 
+            self.left_turn_pose = Pose(Point(3.75,-3.92,0),Quaternion(0,0,0.59,0.8))
             self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(11.11,1.29,0),Quaternion(0,0,0.56,0.83))
+            self.exit_left_pose = Pose(Point(1.36,-2.64,0),Quaternion(0,0,-0.52,0.85))
             self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
-            self.exit_turn_pose = Pose(Point(12.6,0,0),Quaternion(0,0,0,1))
+            self.exit_turn_pose = Pose(Point(1.27,-1.67,0),Quaternion(0,0,0,1))
             self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
             self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
             self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
@@ -100,11 +101,12 @@ class assigner():
         self.pose.orientation.y = rot[1]
         self.pose.orientation.z = rot[2]
         self.pose.orientation.w = rot[3]
-        rospy.loginfo("pose = \n" + str(self.pose.position))
+        rospy.loginfo('current pose = ' + str(self.pose.position.x) + ', ' + str(self.pose.position.y))
+        rospy.loginfo("state = " + str(self.state))
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
-            lightStatus = 1
+            lightStatus = 2
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
                 self.stop()
@@ -112,13 +114,15 @@ class assigner():
             else :
                 rospy.loginfo('signal received.')
                 if lightStatus == 1:
-                    rospy.loginfo('turning right')
+                    rospy.loginfo('entering right')
+                    self.indicator = 0
                     if self.isArrived(self.start_turn_pose):
                         self.state = self.car_states['RIGHT']
                     else:
                         self.state = self.car_states['LIGHT']
                 else:
-                    rospy.loginfo('turning left')
+                    self.indicator = 1
+                    rospy.loginfo('entering left')
                     if self.isArrived(self.start_turn_pose):
                         self.state = self.car_states['LEFT']
                     else:
@@ -126,20 +130,33 @@ class assigner():
                 
     def turnRight(self):
         if self.state == self.car_states['RIGHT']:
-            if not self.sendGoal(self.right_turn_pose):
+            self.rightCmd()
+            rospy.loginfo('turning right')
+            if self.isArrived(self.right_turn_pose):
                 self.state = self.car_states['TURNRIGHT']
             else:
                 self.state = self.car_states['RIGHT']
+            # if not self.sendGoal(self.right_turn_pose):
+            #     self.state = self.car_states['TURNRIGHT']
+            # else:
+            #     self.state = self.car_states['RIGHT']
 
     def turnLeft(self):
         if self.state == self.car_states['LEFT']:
-            if not self.sendGoal(self.left_turn_pose):
+            self.leftCmd()
+            rospy.loginfo('turning left')
+            if self.isArrived(self.left_turn_pose):
                 self.state = self.car_states['TURNLEFT']
             else:
                 self.state = self.car_states['LEFT']
+            # if not self.sendGoal(self.left_turn_pose):
+            #     self.state = self.car_states['TURNLEFT']
+            # else:
+            #     self.state = self.car_states['LEFT']
 
     def right(self):
         if self.state == self.car_states['TURNRIGHT']:
+            rospy.loginfo('on the right')
             if self.isArrived(self.exit_right_pose):
                 self.state = self.car_states['EXITTURN']
             else:
@@ -147,6 +164,7 @@ class assigner():
 
     def left(self):
         if self.state == self.car_states['TURNLEFT']:
+            rospy.loginfo('on the left')
             if self.isArrived(self.exit_left_pose):
                 self.state = self.car_states['EXITTURN']
             else:
@@ -155,10 +173,18 @@ class assigner():
     def exitTurn(self):
         if self.state == self.car_states['EXITTURN']:
             rospy.loginfo('exiting turn')
-            if not self.sendGoal(self.exit_turn_pose):
+            if self.indicator:
+                self.leftCmd()
+            else:
+                self.rightCmd()
+            if self.isArrived(self.exit_turn_pose):
                 self.state = self.car_states['STRAIGHT']
             else:
                 self.state = self.car_states['EXITTURN']
+            # if not self.sendGoal(self.exit_turn_pose):
+            #     self.state = self.car_states['STRAIGHT']
+            # else:
+            #     self.state = self.car_states['EXITTURN']
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
@@ -170,11 +196,12 @@ class assigner():
     def isArrived(self,pose):
         isArrived = 0
         self.updatePose()
-        if self.abs(self.pose.position.x - pose.position.x) < 0.2 and \
+        if self.abs(self.pose.position.x - pose.position.x) < 0.5 and \
            self.abs(self.pose.position.y - pose.position.y) < 0.5:
             isArrived = 1
             rospy.loginfo('target reached!')
         else:
+            rospy.loginfo('target pose = ' + str(pose.position.x) + ', ' + str(pose.position.y))
             rospy.loginfo('approaching target...')
         return isArrived
 
@@ -234,6 +261,18 @@ class assigner():
         drive_msg = Twist()
         drive_msg.linear.x = 0.0
         drive_msg.angular.z = 0.0
+        self.velPub.publish(drive_msg)
+
+    def leftCmd(self):
+        drive_msg = Twist()
+        drive_msg.linear.x = 0.5
+        drive_msg.angular.z = 0.4
+        self.velPub.publish(drive_msg)
+
+    def rightCmd(self):
+        drive_msg = Twist()
+        drive_msg.linear.x = 0.5
+        drive_msg.angular.z = -0.4
         self.velPub.publish(drive_msg)
 
 if __name__ == '__main__':

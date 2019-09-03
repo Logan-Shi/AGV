@@ -6,18 +6,18 @@
 #   short_desc:     Short description (optional)
 
 subscribers:
+  - name:        "FrontStop"
+    topic:       "input/safety"
+    timeout:     1.0
+    priority:    14
+  - name:        "Teleoperation"
+    topic:       "input/teleop"
+    timeout:     1.0
+    priority:    13
   - name:        "Assigner"
     topic:       "input/assigner"
     timeout:     1.0
     priority:    12
-  - name:        "FrontStop"
-    topic:       "input/safety"
-    timeout:     1.0
-    priority:    11
-  - name:        "Teleoperation"
-    topic:       "input/teleop"
-    timeout:     1.0
-    priority:    10
   - name:        "Navigation"
     topic:       "input/navi"
     timeout:     0.2

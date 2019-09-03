@@ -31,8 +31,8 @@ window
 floorplan
 (
   name "maze"
-  bitmap "../maps/experiment_4.png"
-  size [ 17.800 7.700 1.000 ]
+  bitmap "../maps/experiment_5.png"
+  size [ 13.6 11.5 1.000 ]
   pose [  0.000  0.000 0.000 0.000 ]
 )
 
