@@ -28,7 +28,7 @@ class assigner():
                            'PARK'     : 6,
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
-        self.indicator = 0 # 1 as left
+        self.indicator = 1 # 1 as left
         self.state = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(5.8,0,0),Quaternion(0,0,0,1)) 
@@ -45,7 +45,7 @@ class assigner():
             self.start_turn_pose = Pose(Point(4.9,-3.98,0),Quaternion(0,0,0.04,1)) 
             self.left_turn_pose = Pose(Point(3.75,-3.92,0),Quaternion(0,0,0.59,0.8))
             self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(1.78,-2.84,0),Quaternion(0,0,-0.52,0.85))
+            self.exit_left_pose = Pose(Point(1.8,-2.5,0),Quaternion(0,0,-0.52,0.85))
             self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
             self.exit_turn_pose = Pose(Point(1.27,-1.67,0),Quaternion(0,0,0,1))
             self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
