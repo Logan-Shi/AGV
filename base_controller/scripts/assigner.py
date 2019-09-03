@@ -12,7 +12,7 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.arg = arg
+        self.sim = arg # 1 as sim
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
@@ -28,17 +28,30 @@ class assigner():
                            'PARK'     : 6,
                            'TURNRIGHT': 7,
                            'TURNLEFT' : 8}
-        self.state = 1
-        self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
-        self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
-        self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-        self.exit_left_pose = Pose(Point(11.11,1.29,0),Quaternion(0,0,0.56,0.83))
-        self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
-        self.exit_turn_pose = Pose(Point(12.6,0,0),Quaternion(0,0,0,1))
-        self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
-        self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
-        self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
-        self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
+        self.state = 0
+        if arg:
+            self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
+            self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
+            self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
+            self.exit_left_pose = Pose(Point(11.11,1.29,0),Quaternion(0,0,0.56,0.83))
+            self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
+            self.exit_turn_pose = Pose(Point(12.6,0,0),Quaternion(0,0,0,1))
+            self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
+            self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
+            self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
+            self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
+        else:
+            self.start_turn_pose = Pose(Point(2,0,0),Quaternion(0,0,0,1)) 
+            self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
+            self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
+            self.exit_left_pose = Pose(Point(11.11,1.29,0),Quaternion(0,0,0.56,0.83))
+            self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
+            self.exit_turn_pose = Pose(Point(12.6,0,0),Quaternion(0,0,0,1))
+            self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
+            self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
+            self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
+            self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
+
         self.pose = Pose()
         self.client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
         self.map_base_link_tf_listener = tf.TransformListener()
@@ -60,6 +73,7 @@ class assigner():
         goal.target_pose.pose = pose
 
         self.client.send_goal(goal)
+        self.stop()
 
         return self.checkGoalStatus()
             
@@ -90,7 +104,7 @@ class assigner():
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
-            lightStatus = 2
+            lightStatus = 1
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
                 self.stop()
@@ -224,7 +238,8 @@ class assigner():
 
 if __name__ == '__main__':
     try:
-        assigner = assigner()
+        mode = rospy.get_param('mode','0')
+        assigner = assigner(mode)
         assigner.spin()
     except rospy.ROSInterruptException:
         rospy.loginfo("AMCL navigation finished.")

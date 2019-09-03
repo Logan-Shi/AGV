@@ -1,0 +1,5 @@
+<launch>  
+  <node pkg="base_controller" type="assigner.py" name="assigner" output="screen">
+    <param name="mode" value="1"/>
+  </node>
+</launch>

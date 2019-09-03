@@ -10,6 +10,7 @@ double MAX_DIS = 0.7;
 double MAX_DIS_F = 0.7;
 int MIN_ANGLE = 15;
 int MAX_ANGLE = 75;
+double DECEL = 0.5;
 						   //define PUBLISHER_TOPIC "/syros/base_cmd_vel"
 # define PUBLISHER_TOPIC "/cmd_vel_mux/input/laser"
 						   // #define SUBSCRIBER_TOPIC "/syros/laser_laser"
@@ -40,9 +41,11 @@ int main(int argc, char **argv)
 	ros::param::get("~MAX_DIS_F", MAX_DIS_F);
 	ros::param::get("~MIN_ANGLE", MIN_ANGLE);
 	ros::param::get("~MAX_ANGLE", MAX_ANGLE);
+	ros::param::get("~DECEL", DECEL);
+	
 	//Creating object, which stores data from sensors and has methods for
 	//publishing and subscribing
-	SensorNode *nodeBraitenberg2 = new SensorNode(pubMessage, ANGLE_COEF, ROBOT_SPEED, MIN_DIS, MAX_DIS, MIN_ANGLE, MAX_ANGLE,ANGLE_COEF_F, MAX_DIS_F);
+	SensorNode *nodeBraitenberg2 = new SensorNode(pubMessage, ANGLE_COEF, ROBOT_SPEED, MIN_DIS, MAX_DIS, MIN_ANGLE, MAX_ANGLE,ANGLE_COEF_F, MAX_DIS_F,DECEL);
 
 	//Creating subscriber
 	ros::Subscriber sub = n.subscribe(SUBSCRIBER_TOPIC, SUBSCRIBER_BUFFER_SIZE, &SensorNode::messageCallback, nodeBraitenberg2);

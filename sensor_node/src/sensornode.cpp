@@ -2,7 +2,7 @@
 
 //Constructor and destructor
 SensorNode::SensorNode(ros::Publisher pub, double angleC, double speed, double _min_dis, double _max_dis, int _min_degree, 
-	int _max_degree, double angleC_f, double _max_dis_f)
+	int _max_degree, double angleC_f, double _max_dis_f, double _decelerator)
 {
 	angleCoef = angleC;
 	robotSpeed = speed;
@@ -13,7 +13,7 @@ SensorNode::SensorNode(ros::Publisher pub, double angleC, double speed, double _
 	max_dis = _max_dis;
 	angleCoef_f = angleC_f;
 	max_dis_f = _max_dis_f;
-
+	decelerator = _decelerator;
 }
 
 SensorNode::~SensorNode()
@@ -82,7 +82,7 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	}
 	else
 	{
-		v = robotSpeed - 0.5 * abs(angle);
+		v = robotSpeed - decelerator * abs(angle);
 	}
 	ROS_INFO("v = %f",v);
 	publishTwist(v,angle);

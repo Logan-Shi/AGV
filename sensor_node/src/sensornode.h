@@ -31,7 +31,7 @@ public:
 	* speed     Value, which will be stored in robotSpeed.
 	*/
 
-	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int , double, double);
+	SensorNode(ros::Publisher pub, double angleC, double speed, double ,double, int, int , double, double, double);
 
 	~SensorNode();
 
@@ -71,6 +71,7 @@ private:
 	double max_dis_f;            // detect distance
 	double distMinLeft_f;        // Minimum distance masured by sensor on the left.
 	double distMinRight_f;
+	double decelerator;
 	double minDisRight(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
 	double minDisLeft(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
 	double minDis(int, int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
