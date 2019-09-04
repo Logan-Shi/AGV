@@ -22,8 +22,8 @@ interval_sim 100  # simulation timestep in milliseconds
 
 window
 (
-  size [ 981 700 ]
-  center [ -0.016 -0.738 ]
+  size [ 708 410 ]
+  center [ 0.065 -0.113 ]
   rotate [ 0.000 0.000 ]
   scale 49.587
 )
@@ -32,7 +32,7 @@ floorplan
 (
   name "maze"
   bitmap "../maps/experiment_4.png"
-  size [ 17.800 7.700 1.000 ]
+  size [ 12.320 6.800 1.000 ]
   pose [  0.000  0.000 0.000 0.000 ]
 )
 
@@ -58,6 +58,6 @@ model
 # throw in a robot
 carlike_robot
 (
-  pose [ -8.000 -1.000 0.000 0.000 ]
+  pose [ -5.500 -0.650 0.000 0.000 ]
   name "robot"
 )

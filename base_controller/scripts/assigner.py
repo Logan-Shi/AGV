@@ -12,7 +12,6 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.sim = 0 # 1 as sim
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
@@ -27,20 +26,26 @@ class assigner():
                            'DYNAMIC'  : 5,
                            'PARK'     : 6,
                            'TURNRIGHT': 7,
-                           'TURNLEFT' : 8}
+                           'TURNLEFT' : 8,
+                           'PARKONE'  : 9,
+                           'PARKTWO'  : 10,
+                           'FINISH'   : 11}
+        self.sim = 1 # 1 as sim
         self.indicator = 1 # 1 as left
-        self.state = 5
+        self.lightStatusMsg = 1 # 1 as right
+        self.parkMsg = 2 # 1 as spot one, 2 as spot two
+        self.state = 0
         if self.sim:
-            self.start_turn_pose = Pose(Point(5.5,0,0),Quaternion(0,0,0,1)) 
-            self.left_turn_pose = Pose(Point(6.68,0.6,0),Quaternion(0,0,0.5287,0.8488))
-            self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(11.3,1.0,0),Quaternion(0,0,-0.4,0.90))
-            self.exit_right_pose = Pose(Point(11.3,-1.0,0),Quaternion(0,0,0.4,0.90))
-            self.exit_turn_pose = Pose(Point(11.7,0,0),Quaternion(0,0,0,1))
-            self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
-            self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
-            self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
-            self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
+            self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
+            self.left_turn_pose = Pose(Point(0.69,-0.3,0),Quaternion(0,0,0.5287,0.8488))
+            self.right_turn_pose = Pose(Point(0.69,0.3,0),Quaternion(0,0,-0.5287,0.8488))
+            self.exit_left_pose = Pose(Point(-4.9,-0.9,0),Quaternion(0,0,-0.4,0.90))
+            self.exit_right_pose = Pose(Point(-4.9,0.9,0),Quaternion(0,0,0.4,0.90))
+            self.exit_turn_pose = Pose(Point(-5.3,0,0),Quaternion(0,0,0,1))
+            self.straight_lane_pose = Pose(Point(-4.7,-3.5,0),Quaternion(0,0,1,0))
+            self.straight_exit_pose = Pose(Point(0.2,-3.5,0),Quaternion(0,0,1,0))
+            self.park_one_pose = Pose(Point(1.93,-1.95,0),Quaternion(0,0,0.7,0.7))
+            self.park_two_pose = Pose(Point(3,-1.95,0),Quaternion(0,0,0.7,0.7))
         else:
             self.start_turn_pose = Pose(Point(4.9,-3.98,0),Quaternion(0,0,0.04,1)) 
             self.left_turn_pose = Pose(Point(3.75,-3.92,0),Quaternion(0,0,0.59,0.8))
@@ -106,7 +111,7 @@ class assigner():
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
-            lightStatus = 2
+            lightStatus = self.lightStatusMsg
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
                 self.stop()
@@ -116,14 +121,14 @@ class assigner():
                 if lightStatus == 1:
                     rospy.loginfo('entering right')
                     self.indicator = 0
-                    if self.isArrived(self.start_turn_pose):
+                    if self.isArrivedLineX(self.start_turn_pose):
                         self.state = self.car_states['RIGHT']
                     else:
                         self.state = self.car_states['LIGHT']
                 else:
                     self.indicator = 1
                     rospy.loginfo('entering left')
-                    if self.isArrived(self.start_turn_pose):
+                    if self.isArrivedLineX(self.start_turn_pose):
                         self.state = self.car_states['LEFT']
                     else:
                         self.state = self.car_states['LIGHT']
@@ -132,7 +137,7 @@ class assigner():
         if self.state == self.car_states['RIGHT']:
             self.rightCmd()
             rospy.loginfo('turning right')
-            if self.isArrived(self.right_turn_pose):
+            if self.isArrivedLineY(self.right_turn_pose):
                 self.state = self.car_states['TURNRIGHT']
             else:
                 self.state = self.car_states['RIGHT']
@@ -145,7 +150,7 @@ class assigner():
         if self.state == self.car_states['LEFT']:
             self.leftCmd()
             rospy.loginfo('turning left')
-            if self.isArrived(self.left_turn_pose):
+            if self.isArrivedLineY(self.left_turn_pose):
                 self.state = self.car_states['TURNLEFT']
             else:
                 self.state = self.car_states['LEFT']
@@ -157,7 +162,7 @@ class assigner():
     def right(self):
         if self.state == self.car_states['TURNRIGHT']:
             rospy.loginfo('on the right')
-            if self.isArrived(self.exit_right_pose):
+            if self.isArrivedLineY(self.exit_right_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['TURNRIGHT']
@@ -165,7 +170,7 @@ class assigner():
     def left(self):
         if self.state == self.car_states['TURNLEFT']:
             rospy.loginfo('on the left')
-            if self.isArrived(self.exit_left_pose):
+            if self.isArrivedLineY(self.exit_left_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['TURNLEFT']
@@ -177,7 +182,7 @@ class assigner():
                 self.leftCmd()
             else:
                 self.rightCmd()
-            if self.isArrived(self.exit_turn_pose):
+            if self.isArrivedLineX(self.exit_turn_pose):
                 self.state = self.car_states['STRAIGHT']
             else:
                 self.state = self.car_states['EXITTURN']
@@ -188,10 +193,34 @@ class assigner():
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
-            if self.isArrived(self.straight_lane_pose):
+            if self.isArrivedLineX(self.straight_lane_pose):
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']
+
+    def isArrivedLineX(self,pose):
+        isArrivedLineX = 0
+        self.updatePose()
+        if self.abs(self.pose.position.x - pose.position.x) < 0.1 and \
+           self.abs(self.pose.position.y - pose.position.y) < 0.8:
+            isArrivedLineX = 1
+            rospy.loginfo('line reached!')
+        else:
+            rospy.loginfo('target x = ' + str(pose.position.x))
+            rospy.loginfo('reaching line...')
+        return isArrivedLineX
+
+    def isArrivedLineY(self,pose):
+        isArrivedLineY = 0
+        self.updatePose()
+        if self.abs(self.pose.position.y - pose.position.y) < 0.1 and \
+           self.abs(self.pose.position.x - pose.position.x) < 0.8:
+            isArrivedLineY = 1
+            rospy.loginfo('line reached!')
+        else:
+            rospy.loginfo('target y = ' + str(pose.position.y))
+            rospy.loginfo('reaching line...')
+        return isArrivedLineY
 
     def isArrived(self,pose):
         isArrived = 0
@@ -214,7 +243,7 @@ class assigner():
                 self.stop()
                 self.state = self.car_states['DYNAMIC']
             else:
-                if self.isArrived(self.straight_exit_pose):
+                if self.isArrivedLineX(self.straight_exit_pose):
                     rospy.loginfo('pedestrian crossing passed!')
                     self.state = self.car_states['PARK']
                 else:
@@ -228,17 +257,49 @@ class assigner():
 
     def park(self):
         if self.state == self.car_states['PARK']:
-            park = 1
+            rospy.loginfo('parking...')
+            park = self.parkMsg
             if park == 1:
-                if not self.sendGoal(self.park_one_pose):
-                    rospy.loginfo('parked into spot one')
-                else:
-                    self.state == self.car_states['PARK']
+                self.state = self.car_states['PARKONE']
+            elif park == 2:
+                self.state = self.car_states['PARKTWO']
             else:
-                if not self.sendGoal(self.park_two_pose):
-                    rospy.loginfo('parked into spot two')
-                else:
-                    self.state == self.car_states['PARK']
+                self.state = self.car_states['PARK']
+
+    def parkOne(self):
+        if self.state == self.car_states['PARKONE']:
+            rospy.loginfo('park to spot one')
+            parkingStatus = self.sendGoal(self.park_one_pose)
+            if parkingStatus == 0:
+                self.stop()
+                rospy.loginfo('parked into spot one')
+                self.state = self.car_states['FINISH']
+            elif parkingStatus == 1:
+                self.backup()
+                rospy.loginfo('goal failed, auto parking')
+                self.state = self.car_states['FINISH']
+            else:
+                self.state = self.car_states['PARKONE']
+
+    def parkTwo(self):
+        if self.state == self.car_states['PARKTWO']:
+            rospy.loginfo('park to spot two')
+            parkingStatus = self.sendGoal(self.park_two_pose)
+            if parkingStatus == 0:
+                self.stop()
+                rospy.loginfo('parked into spot two')
+                self.state = self.car_states['FINISH']
+            elif parkingStatus == 1:
+                self.backup()
+                rospy.loginfo('goal failed, auto parking')
+                self.state = self.car_states['FINISH']
+            else:
+                self.state = self.car_states['PARKTWO']
+
+    def finish(self):
+        if self.state == self.car_states['FINISH']:
+            self.backup()
+            rospy.loginfo('FINISH')
     
     def _shutdown(self):
         self.client.cancel_goal()
@@ -255,6 +316,9 @@ class assigner():
             self.goStraight()
             self.waitforDynamicObj()
             self.park()
+            self.parkOne()
+            self.parkTwo()
+            self.finish()
             self.rate.sleep()
 
     def stop(self):
@@ -274,6 +338,18 @@ class assigner():
         drive_msg.linear.x = 0.5
         drive_msg.angular.z = -0.4
         self.velPub.publish(drive_msg)
+
+    def backup(self):
+        drive_msg = Twist()
+        if self.isFrontMsg == 2:
+            drive_msg.linear.x = -0.2
+            drive_msg.angular.z = 0.0
+        else:
+            drive_msg.linear.x = 0.0
+            drive_msg.angular.z = 0.0
+        self.velPub.publish(drive_msg)
+
+
 
 if __name__ == '__main__':
     try:

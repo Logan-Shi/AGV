@@ -59,6 +59,10 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	if (distMinRight_f < 1 or distMinLeft_f < 1)
 	{
 		frontMsg.data = 1;
+		if (distMinRight_f < 0.4 or distMinLeft_f < 0.4)
+		{
+			frontMsg.data = 2;
+		}
 	}
 	else
 	{

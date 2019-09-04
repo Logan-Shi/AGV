@@ -23,7 +23,7 @@
             <param name="angularUpdate" value="0.01"/>
             <param name="temporalUpdate" value="0.1"/>
             <param name="resampleThreshold" value="0.5"/>
-            <param name="particles" value="30"/>
+            <param name="particles" value="300"/>
             <param name="xmin" value="-5.0"/>
             <param name="ymin" value="-5.0"/>
             <param name="xmax" value="5.0"/>

@@ -20,7 +20,7 @@ subscribers:
     priority:    11
   - name:        "Navigation"
     topic:       "input/navi"
-    timeout:     0.2
+    timeout:     1.0
     priority:    5
   - name:        "Laser"
     topic:       "input/laser"
