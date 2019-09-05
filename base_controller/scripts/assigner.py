@@ -32,8 +32,8 @@ class assigner():
                            'FINISH'   : 11}
         self.sim = 1 # 1 as sim
         self.indicator = 1
-        self.lightStatusMsg = 2 # 0 as stop, 1 as right
-        self.parkMsg = 1 # 1 as spot one, 2 as spot two
+        self.lightStatusMsg = 0 # 0 as stop, 1 as right
+        self.parkMsg = 0 # 1 as spot one, 2 as spot two
         self.state = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
@@ -74,20 +74,20 @@ class assigner():
 
     def hilenDataCallback(self,msg):
         flag = msg.data
-        if not flag:
-            if flag == 1:
+        if flag:
+            if flag == 3:
                 self.lightStatusMsg = 1
                 rospy.loginfo('hilens told me to go right')
-            elif flag == 2:
+            elif flag == 4:
                 self.lightStatusMsg = 2
                 rospy.loginfo('hilens told me to go left')
-            elif flag == 3:
+            elif flag == 1 or flag == 2:
                 self.lightStatusMsg = 0
                 rospy.loginfo('hilens told me to stop')
-            elif flag == 4:
+            elif flag == 5:
                 self.parkMsg = 1
                 rospy.loginfo('hilens told me to park at spot one')
-            elif flag == 5:
+            elif flag == 6:
                 self.parkMsg = 2
                 rospy.loginfo('hilens told me to park at spot two')
 
