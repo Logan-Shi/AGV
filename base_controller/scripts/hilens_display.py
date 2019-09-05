@@ -1,73 +1,124 @@
-#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+from socket import *
+from time import ctime
+import time
+import cv2
+import numpy
+import sys
+import os
 import rospy
-from flask import Flask
-from flask import request
-from geometry_msgs.msg import Point
-import numpy as np
-conf_threshold = 1
-size_threshold = 100
-app = Flask(__name__)
-@app.route("/follow_detection_result", methods=['POST', 'GET'])
-def webhook():
-    data = request.values.to_dict()
-    bbox = data['bbox']
-    for i in range(len(bbox)):
-        if(bbox[i] == ']'):
-            break
-    pos = bbox[4:i]
-    position = []
-    cur_pos = ''
-    last = ' '
-    cur = ' '
-    for j in range(len(pos)):
-        cur = pos[j]
-        if((last == ' ') and (cur == ' ')):
-            pass
-        elif((cur != ' ')):
-            cur_pos = cur_pos + cur
-        elif((last != ' ') and (cur == ' ')):
-            position.append(cur_pos)
-            cur_pos = ''
-        last = cur
-        position.append(cur_pos)
-    _left, _up, _right, _bottom = position
-    left = float(_left)
-    up = float(_up)
-    right = float(_right)
-    bottom = float(_bottom)
-    w = right - left
-    h = bottom - up
-    size = w * h
-    center = [(left + right) // 2, (up + bottom) // 2]
-    confidence = data['confidence']
-    for i in range(len(confidence)):
-        if(confidence[i] == ']'):
-            break
-    _conf = confidence[3:i]
-    conf = float(_conf)
-    objclass = data['class']
-    for i in range(len(objclass)):
-        if(objclass[i] == '.'):
-            break
-    _objcls = objclass[3:i]
-    objcls = int(_objcls)
-    hilensDetMsg = Point()
-    print(objcls)
-    print(size)
-    
-    '''
-    if conf > conf_threshold and size > size_threshold:
-        hilensDetMsg.has_object = True
-        hilensDetMsg.object_class = objcls
-        hilensDetMsg.object_size = size
-        hilensDetMsg.object_center.x = center[0]
-        hilensDetMsg.object_center.y = center[1]
-'''
-    hilensDetMsg.x = center[0]
-    hilensDetMsg.y = center[1]
-    hilensDetPub.publish(hilensDetMsg)
-    
-if __name__ == "__main__":
-    rospy.init_node('hilens', anonymous=True)
-    hilensDetPub = rospy.Publisher('hilens_detection', Point, queue_size=1)
-    app.run(host="198.168.55.1", port="8088")
+from std_msgs.msg import UInt8
+
+def cvShowImage(imgName,img):
+    cv2.imshow(imgName,img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def recvall(sock, count):
+	buf = b''
+	while count:
+		newbuf = sock.recv(count)
+		if not newbuf: return None
+		buf += newbuf
+		count -= len(newbuf)
+	return buf
+
+def getPhoto(hilens_socket):
+    hilens_socket.send('photo'.encode())
+    length = recvall(hilens_socket,16)
+    stringData = recvall(hilens_socket, int(length))
+    data = numpy.frombuffer(stringData, numpy.uint8)
+    decimg=cv2.imdecode(data,cv2.IMREAD_COLOR)
+    hilens_socket.send('done'.encode())
+    return decimg
+
+def makeDetection(hilens_socket,keep_top_k):
+    bufsize = 1024
+    getResult = False
+    while not getResult:
+        try:
+            hilens_socket.send('detection'.encode())
+            receive = hilens_socket.recv(bufsize)
+            if not len(receive):
+                print("no confirm receive")
+            else:
+                print('receive confirm')
+            receive = hilens_socket.recv(bufsize)
+            if not len(receive):
+                print("no rkeep_top_k receive")
+                continue
+            rkeep_top_k = int(receive.decode())
+            result = []
+            for i in range(rkeep_top_k):
+                clas = hilens_socket.recv(bufsize)
+                conf = hilens_socket.recv(bufsize)
+                result.append((clas,conf))
+            hilens_socket.send('done'.encode())
+            getResult = True
+            time.sleep(0.01)
+        except:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+            print("making detection again")
+            continue
+    print("detection result:",result)
+        
+
+def connectToHilens(hilens_socket,serverName,serverPort):
+    connect = False
+    while not connect:
+        try:
+            hilens_socket.connect((serverName,serverPort))
+        except:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+            print('trying connecting')
+            continue
+        connect = True
+        print('connected')     
+    return True
+
+class hilens():
+    def __init__(self, arg):
+        self.arg = arg
+        rospy.init_node('hilens', anonymous=True)
+        self.hilensData = UInt8()
+        self.dataPub = rospy.Publisher('hilensData',UInt8, queue_size=1)
+        self.rate = rospy.Rate(10)
+        rospy.on_shutdown(self._shutdown)
+
+    def spin(self):
+        while not rospy.is_shutdown():
+            self.main('192.168.2.111',8080)
+            self.dataPub.publish(self.hilensData)
+            self.rate.sleep()
+
+    def _shutdown(self):
+        pass
+
+    def main(self,serverName,serverPort):
+        bufsize = 1024
+        
+        while True:
+            hilens_socket = socket(AF_INET,SOCK_STREAM)
+            connectToHilens(hilens_socket,serverName,serverPort)
+            try:
+                while True:
+                    img = getPhoto(hilens_socket)
+                    cvShowImage('imgFromHiles',img)
+                    sys.sleep(0.02)
+                    self.hilensData = 1
+                    # makeDetection(hilens_socket,4)
+            except:
+                try:
+                    hilens_socket.close()
+                except:
+                    print(sys.exc_info()[0])
+                    continue
+
+if __name__=="__main__":
+    try:
+        hilens = hilens(1)
+        hilens.spin()
+    except rospy.ROSInterruptException:
+        rospy.loginfo("hilens stopped.")
