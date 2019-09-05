@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from socket import *
 from time import ctime
@@ -98,23 +99,19 @@ class hilens():
 
     def main(self,serverName,serverPort):
         bufsize = 1024
-        
-        while True:
-            hilens_socket = socket(AF_INET,SOCK_STREAM)
-            connectToHilens(hilens_socket,serverName,serverPort)
+        hilens_socket = socket(AF_INET,SOCK_STREAM)
+        connectToHilens(hilens_socket,serverName,serverPort)
+        try:
+            # img = getPhoto(hilens_socket)
+            # cvShowImage('imgFromHiles',img)
+            # sys.sleep(0.02)
+            self.hilensData = 1
+            # makeDetection(hilens_socket,4)
+        except:
             try:
-                while True:
-                    img = getPhoto(hilens_socket)
-                    cvShowImage('imgFromHiles',img)
-                    sys.sleep(0.02)
-                    self.hilensData = 1
-                    # makeDetection(hilens_socket,4)
+                hilens_socket.close()
             except:
-                try:
-                    hilens_socket.close()
-                except:
-                    print(sys.exc_info()[0])
-                    continue
+                print(sys.exc_info()[0])
 
 if __name__=="__main__":
     try:
