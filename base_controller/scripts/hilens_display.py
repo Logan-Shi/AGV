@@ -16,9 +16,8 @@ def cvShowImage(imgName,img):
     cv2.destroyAllWindows()
 
 def recvall(sock, count):
-    buf = b''#buf是一个byte类型
+    buf = b''
     while count:
-        #接受TCP套接字的数据。数据以字符串形式返回，count指定要接收的最大数据量.
         newbuf = sock.recv(count)
         if not newbuf: return None
         buf += newbuf
@@ -96,6 +95,7 @@ class hilens():
         self.dataPub = rospy.Publisher('hilensData',UInt8, queue_size=1)
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
+        self.hilens_socket = socket(AF_INET,SOCK_STREAM)
 
     def spin(self):
         while not rospy.is_shutdown():
@@ -104,28 +104,33 @@ class hilens():
             self.rate.sleep()
 
     def _shutdown(self):
-        pass
+        try:
+            rospy.loginfo('shutting down')
+            self.hilens_socket.close()
+        except:
+            print(sys.exc_info()[0])
 
     def main(self,serverName,serverPort):
         bufsize = 1024
-        hilens_socket = socket(AF_INET,SOCK_STREAM)
-        connectToHilens(hilens_socket,serverName,serverPort)
+        self.hilens_socket = socket(AF_INET,SOCK_STREAM)
+        connectToHilens(self.hilens_socket,serverName,serverPort)
         try:
-            # img = getPhoto(hilens_socket)
+            # img = getPhoto(self.hilens_socket)
             # cvShowImage('imgFromHiles',img)
             # sys.sleep(0.02)
             # self.hilensData = 1
-            data = makeDetection(hilens_socket,4)
+            data = makeDetection(self.hilens_socket,4)
             if data[0][1] < 0.2:
                 self.hilensData = 0
             else:
                 self.hilensData = data[0][0]
+            self.hilens_socket.close()
         except:
             try:
-                hilens_socket.close()
+                self.hilens_socket.close()
             except:
                 print(sys.exc_info()[0])
-        hilens_socket.close()
+
 
 if __name__=="__main__":
     try:
