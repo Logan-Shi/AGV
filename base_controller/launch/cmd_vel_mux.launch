@@ -18,7 +18,7 @@
     </node>
     
     <!-- ****Velocity Smoother (just regulate the overall output from cmd_vel_mux) ***** -->
-    <node pkg="nodelet" type="nodelet" name="$(arg smoother_node_name)" args="load yocs_velocity_smoother/VelocitySmootherNodelet $(arg nodelet_manager_name)">
+<!--     <node pkg="nodelet" type="nodelet" name="$(arg smoother_node_name)" args="load yocs_velocity_smoother/VelocitySmootherNodelet $(arg nodelet_manager_name)">
 
         <rosparam file="$(arg config_file)" command="load"/>
 
@@ -27,5 +27,5 @@
 
         <remap from="$(arg smoother_node_name)/robot_cmd_vel"     to="$(arg robot_cmd_vel_topic)"/>
         <remap from="$(arg smoother_node_name)/odometry"          to="$(arg odom_topic)"/>
-    </node>
+    </node> -->
 </launch>
