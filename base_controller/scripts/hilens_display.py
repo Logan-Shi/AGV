@@ -16,13 +16,14 @@ def cvShowImage(imgName,img):
     cv2.destroyAllWindows()
 
 def recvall(sock, count):
-	buf = b''
-	while count:
-		newbuf = sock.recv(count)
-		if not newbuf: return None
-		buf += newbuf
-		count -= len(newbuf)
-	return buf
+    buf = b''#buf是一个byte类型
+    while count:
+        #接受TCP套接字的数据。数据以字符串形式返回，count指定要接收的最大数据量.
+        newbuf = sock.recv(count)
+        if not newbuf: return None
+        buf += newbuf
+        count -= len(newbuf)
+    return buf
 
 def getPhoto(hilens_socket):
     hilens_socket.send('photo'.encode())
@@ -49,11 +50,17 @@ def makeDetection(hilens_socket,keep_top_k):
                 print("no rkeep_top_k receive")
                 continue
             rkeep_top_k = int(receive.decode())
+            #print("get rkeep_top_k: ",rkeep_top_k)
+            hilens_socket.send('done'.encode())
             result = []
             for i in range(rkeep_top_k):
-                clas = hilens_socket.recv(bufsize)
-                conf = hilens_socket.recv(bufsize)
+                receive = (hilens_socket.recv(bufsize)).decode()
+                message = receive.split(',')
+                clas = int(message[0])
+                conf = float(message[1])
                 result.append((clas,conf))
+                if(i != rkeep_top_k - 1):
+                    hilens_socket.send('done'.encode())
             hilens_socket.send('done'.encode())
             getResult = True
             time.sleep(0.01)
@@ -62,7 +69,8 @@ def makeDetection(hilens_socket,keep_top_k):
             print(sys.exc_info()[1])
             print("making detection again")
             continue
-    print("detection result:",result)
+    #print("detection result:",result)
+    return result
         
 
 def connectToHilens(hilens_socket,serverName,serverPort):
@@ -78,6 +86,7 @@ def connectToHilens(hilens_socket,serverName,serverPort):
         connect = True
         print('connected')     
     return True
+
 
 class hilens():
     def __init__(self, arg):
@@ -105,8 +114,12 @@ class hilens():
             # img = getPhoto(hilens_socket)
             # cvShowImage('imgFromHiles',img)
             # sys.sleep(0.02)
-            self.hilensData = 1
-            # makeDetection(hilens_socket,4)
+            # self.hilensData = 1
+            data = makeDetection(hilens_socket,4)
+            if data[0][1] < 0.2:
+                self.hilensData = 0
+            else:
+                self.hilensData = data[0][0]
         except:
             try:
                 hilens_socket.close()

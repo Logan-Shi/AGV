@@ -31,9 +31,9 @@ class assigner():
                            'PARKTWO'  : 10,
                            'FINISH'   : 11}
         self.sim = 1 # 1 as sim
-        self.indicator = 1 # 1 as left
-        self.lightStatusMsg = 1 # 1 as right
-        self.parkMsg = 2 # 1 as spot one, 2 as spot two
+        self.indicator = 1
+        self.lightStatusMsg = 2 # 0 as stop, 1 as right
+        self.parkMsg = 1 # 1 as spot one, 2 as spot two
         self.state = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
@@ -64,11 +64,32 @@ class assigner():
         self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner",\
                 Twist, queue_size =1 )
         rospy.Subscriber('isFront', UInt8, self.isFrontCallback)
+        rospy.Subscriber('hilensData',UInt8,self.hilenDataCallback)
         self.isFrontMsg = UInt8()
+        self.hilenData = UInt8()
         rospy.sleep(1)
 
     def isFrontCallback(self,msg):
         self.isFrontMsg = msg.data
+
+    def hilenDataCallback(self,msg):
+        flag = msg.data
+        if not flag:
+            if flag == 1:
+                self.lightStatusMsg = 1
+                rospy.loginfo('hilens told me to go right')
+            elif flag == 2:
+                self.lightStatusMsg = 2
+                rospy.loginfo('hilens told me to go left')
+            elif flag == 3:
+                self.lightStatusMsg = 0
+                rospy.loginfo('hilens told me to stop')
+            elif flag == 4:
+                self.parkMsg = 1
+                rospy.loginfo('hilens told me to park at spot one')
+            elif flag == 5:
+                self.parkMsg = 2
+                rospy.loginfo('hilens told me to park at spot two')
 
     def sendGoal(self,pose):
         self.client.wait_for_server()
@@ -348,8 +369,6 @@ class assigner():
             drive_msg.linear.x = 0.0
             drive_msg.angular.z = 0.0
         self.velPub.publish(drive_msg)
-
-
 
 if __name__ == '__main__':
     try:
