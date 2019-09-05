@@ -112,6 +112,7 @@ class hilens():
                 hilens_socket.close()
             except:
                 print(sys.exc_info()[0])
+        hilens_socket.close()
 
 if __name__=="__main__":
     try:
