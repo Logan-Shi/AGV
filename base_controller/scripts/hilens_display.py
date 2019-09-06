@@ -49,7 +49,7 @@ def makeDetection(hilens_socket,keep_top_k):
                 print("no rkeep_top_k receive")
                 continue
             rkeep_top_k = int(receive.decode())
-            #print("get rkeep_top_k: ",rkeep_top_k)
+            print("get rkeep_top_k: ",rkeep_top_k)
             hilens_socket.send('done'.encode())
             result = []
             for i in range(rkeep_top_k):
@@ -68,7 +68,7 @@ def makeDetection(hilens_socket,keep_top_k):
             print(sys.exc_info()[1])
             print("making detection again")
             continue
-    #print("detection result:",result)
+    print("detection result:",result)
     return result
         
 
@@ -126,7 +126,7 @@ class hilens():
             index = len(os.listdir(img_path))
             #cvShowImage('bbb',img)
             cv2.imwrite(img_path + str(data[0][0])+'_'+str(index+1)+'.jpg',img)
-            
+         
             if data[0][1] < 0.2:
                 self.hilensData = 0
             else:

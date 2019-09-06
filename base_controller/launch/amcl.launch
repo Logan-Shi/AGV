@@ -11,6 +11,9 @@
 
   <!--  ************** Bot bringup ***************  -->
   <include file="$(find base_controller)/launch/base_controller.launch" />
-	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
+  <include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/><!--
+  <include file="$(find sensor_node)/launch/sensor_node.launch"/>
+  <include file="$(find base_controller)/launch/assigner.launch"/>
+  <node pkg="base_controller" type="hilens_display.py" name="hilens" output="screen"/>-->
 
 </launch>

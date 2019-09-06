@@ -34,8 +34,8 @@ class assigner():
                            'FINISH'   : 11}
         self.sim = 0 # 1 as sim
         self.indicator = 0 # 1 as left
-        self.lightStatusMsg = 1 # 0 as stop, 1 as right
-        self.parkMsg = 0 # 1 as spot one, 2 as spot two
+        self.lightStatusMsg = 0 # 0 as stop, 1 as right
+        self.parkMsg = 1 # 1 as spot one, 2 as spot two
         self.state = 0
         self.exit = 0
         if self.sim:
@@ -50,9 +50,9 @@ class assigner():
             self.park_one_pose = Pose(Point(1.93,-1.95,0),Quaternion(0,0,0.7,0.7))
             self.park_two_pose = Pose(Point(3,-1.95,0),Quaternion(0,0,0.7,0.7))
         else:
-            self.start_turn_pose = Pose(Point(2.3,0.0,0),Quaternion(0,0,0.04,1)) 
-            self.left_turn_pose = Pose(Point(3.5,0.08,0),Quaternion(0,0,0.59,0.8))
-            self.right_turn_pose = Pose(Point(3.5,-0.1,0),Quaternion(0,0,-0.5287,0.8488))
+            self.start_turn_pose = Pose(Point(1.7,0.0,0),Quaternion(0,0,0.04,1)) 
+            self.left_turn_pose = Pose(Point(3,0.08,0),Quaternion(0,0,0.59,0.8))
+            self.right_turn_pose = Pose(Point(3,-0.1,0),Quaternion(0,0,-0.5287,0.8488))
             self.exit_left_pose = Pose(Point(6.3,-0.0,0),Quaternion(0,0,-0.52,0.85))
             self.exit_right_pose = Pose(Point(6.3,0,0),Quaternion(0,0,-0.56,0.83))
             self.exit_turn_pose = Pose(Point(5.5,0.0,0),Quaternion(0,0,0,1))
@@ -80,9 +80,9 @@ class assigner():
 
     def isFrontCallback(self,msg):
         data = min(msg.linear.x, msg.linear.y)
-        if data < 0.6: 
+        if data < 0.4: 
             self.isFrontMsg = 2
-        elif data < 0.95:
+        elif data < 0.8:
             self.isFrontMsg = 1
         else:
             self.isFrontMsg = 0
@@ -110,12 +110,13 @@ class assigner():
             elif flag == 1 or flag == 2:
                 self.lightStatusMsg = 0
                 rospy.loginfo('hilens told me to stop')
-            elif flag == 5:
-                self.parkMsg = 1
-                rospy.loginfo('hilens told me to park at spot one')
-            elif flag == 6:
-                self.parkMsg = 2
-                rospy.loginfo('hilens told me to park at spot two')
+            elif self.state == 4:
+                if flag == 5:
+                    self.parkMsg = 1
+                    rospy.loginfo('hilens told me to park at spot one')
+                elif flag == 6:
+                    self.parkMsg = 2
+                    rospy.loginfo('hilens told me to park at spot two')
 
     def sendGoal(self,pose):
         self.client.wait_for_server()
@@ -168,21 +169,25 @@ class assigner():
                 if lightStatus == 1:
                     rospy.loginfo('entering right')
                     self.indicator = 0
-                    if self.isArrivedLineX(self.start_turn_pose):
+                    # if self.isArrivedLineX(self.start_turn_pose):
+                    if self.rightClear:
                         self.state = self.car_states['RIGHT']
                     else:
                         self.state = self.car_states['LIGHT']
-                else:
+                elif lightStatus == 2:
                     self.indicator = 1
                     rospy.loginfo('entering left')
-                    if self.isArrivedLineX(self.start_turn_pose):
+                    # if self.isArrivedLineX(self.start_turn_pose):
+                    if self.leftClear:
                         self.state = self.car_states['LEFT']
                     else:
                         self.state = self.car_states['LIGHT']
+                else:
+                    self.state = self.car_states['LIGHT']
                 
     def turnRight(self):
         if self.state == self.car_states['RIGHT']:
-            self.rightCmd()
+            self.rightCmdP()
             rospy.loginfo('turning right')
             if self.isArrivedLineX(self.right_turn_pose):
                 self.state = self.car_states['TURNRIGHT']
@@ -195,9 +200,9 @@ class assigner():
 
     def turnLeft(self):
         if self.state == self.car_states['LEFT']:
-            self.leftCmd()
+            self.leftCmdP()
             rospy.loginfo('turning left')
-            if self.counter > 10:
+            if self.isArrivedLineX(self.left_turn_pose):
                 self.state = self.car_states['TURNLEFT']
             else:
                 self.state = self.car_states['LEFT']
@@ -228,15 +233,14 @@ class assigner():
         if self.state == self.car_states['EXITTURN']:
             rospy.loginfo('exiting turn')
             rospy.loginfo(str(self.exit))
-            if 0: #self.indicator:
+            if self.indicator:
                 if self.rightClear:
-                    self.cnt += 1
-                    rospy.loginfo('right clear'+str(self.cnt))
-                    if self.cnt > 3:
-                        rospy.loginfo('left')
-                        self.statePublish(1)
-                        if not self.rightClear:
-                            self.state = self.car_states['STRAIGHT']
+                    self.exit = 1
+                    rospy.loginfo('left clear')
+                    rospy.loginfo('left')
+                    self.statePublish(1)
+                if (not self.rightClear) and self.exit:
+                        self.state = self.car_states['STRAIGHT']
             else:
                 if self.leftClear:
                     self.exit = 1 
@@ -304,7 +308,8 @@ class assigner():
                 self.stop()
                 self.state = self.car_states['DYNAMIC']
             else:
-                if self.isArrivedLineX(self.straight_exit_pose):
+                # if self.isArrivedLineX(self.straight_exit_pose):
+                if self.leftClear:
                     rospy.loginfo('pedestrian crossing passed!')
                     self.state = self.car_states['PARK']
                 else:
@@ -329,18 +334,17 @@ class assigner():
 
     def parkOne(self):
         if self.state == self.car_states['PARKONE']:
-            if isArrivedLineX(self.park_one):
+            rospy.loginfo('park to spot one')
+            if self.isFrontMsg == 2:
+                self.stop()
+            else:
                 self.leftCmdP()
-                if isArrivedLineX(self.exit):
-                    self.state = self.car_states['FINISH']
                     
     def parkTwo(self):
         if self.state == self.car_states['PARKTWO']:
             rospy.loginfo('park to spot two')
-            if isArrivedLineX(self.park_two):
-                self.leftCmdP()
-                if isArrivedLineX(self.exit):
-                    self.state = self.car_states['FINISH']
+            if self.isFrontMsg == 2:
+                self.stop()
 
     def finish(self):
         if self.state == self.car_states['FINISH']:
@@ -348,7 +352,6 @@ class assigner():
             rospy.loginfo('FINISH')
     
     def _shutdown(self):
-        self.client.cancel_goal()
         self.stop()
 
     def spin(self):
@@ -376,18 +379,21 @@ class assigner():
         drive_msg.linear.x = 0.0
         drive_msg.angular.z = 0.0
         self.velPub.publish(drive_msg)
+        rospy.loginfo('stop')
 
     def leftCmdP(self):
         drive_msg = Twist()
         drive_msg.linear.x = 0.7
         drive_msg.angular.z = 0.2
-        self.velPub.publish(drive_msg)
+        # self.velPub.publish(drive_msg)
+        self.statePublish(3)
         
     def rightCmdP(self): 
         drive_msg = Twist()
         drive_msg.linear.x = 0.7
         drive_msg.angular.z = 0.2
-        self.velPub.publish(drive_msg)
+        # self.velPub.publish(drive_msg)
+        self.statePublish(4)
 
     def leftCmd(self):
         self.counter += 1
@@ -396,6 +402,7 @@ class assigner():
         drive_msg.angular.z = 0.39
         # self.velPub.publish(drive_msg)
         self.statePublish(1)
+        rospy.loginfo('go left')
 
     def rightCmd(self):
         self.counter += 1
@@ -404,6 +411,7 @@ class assigner():
         drive_msg.angular.z = -0.39
         # self.velPub.publish(drive_msg)
         self.statePublish(2)
+        rospy.loginfo('go right')
         
     def backup(self):
         drive_msg = Twist()

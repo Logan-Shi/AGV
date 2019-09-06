@@ -68,10 +68,15 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	pubFrontMsg.publish(frontMsg);
         
         if (state == 1)
-            distMinLeft /= 2;
+            distMinLeft /= angleCoef_f;
         else if (state == 2)
-            distMinRight /=2;
-         
+            distMinRight /=angleCoef_f;
+        else if (state == 3)
+            distMinLeft = 0.35;
+        else if (state == 4)
+            distMinRight = 0.35;
+            //TODO
+             
 	double angle = 0;
 	if (distMinLeft >= distMinRight)
 	{
@@ -82,14 +87,6 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 		angle += angleCoef * (distMinRight / distMinLeft - 1);
 	}
 
-	if (distMinLeft_f >= distMinRight_f)
-	{
-		angle += -angleCoef_f * (distMinLeft_f / distMinRight_f - 1);
-	}
-	else
-	{
-		angle += angleCoef_f * (distMinRight_f / distMinLeft_f - 1);
-	}
 	angle = min(max(-0.48,angle),0.48);
 	
 	ROS_INFO("angle = %f",angle);

@@ -1,8 +1,8 @@
 <launch>
   <node name="sensor_main" pkg="sensor_node" type="sensor_main" output="screen">
       <param name="ANGLE_COEF"    type="double" value="1.95"/>
-      <param name="ANGLE_COEF_F"    type="double" value="0"/>
-      <param name="ROBOT_SPEED"   type="double" value="0.7"/>
+      <param name="ANGLE_COEF_F"    type="double" value="2"/>
+      <param name="ROBOT_SPEED"   type="double" value="0.8"/>
       <param name="MIN_ANGLE"    type="int" value="10"/>
       <param name="MAX_DIS"   type="double" value="1.4"/>
       <param name="MAX_DIS_F"   type="double" value="1.4"/>
