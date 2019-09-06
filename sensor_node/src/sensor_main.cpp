@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
 	//Creating publisher
 	ros::Publisher pubMessage = n.advertise<geometry_msgs::Twist>(PUBLISHER_TOPIC, PUBLISHER_BUFFER_SIZE);
-	ros::Publisher pubFrontMsg = n.advertise<std_msgs::UInt8>("isFront", PUBLISHER_BUFFER_SIZE);
+	ros::Publisher pubFrontMsg = n.advertise<geometry_msgs::Twist>("isFront", PUBLISHER_BUFFER_SIZE);
 
 	ros::param::get("~ANGLE_COEF", ANGLE_COEF);
 	ros::param::get("~ANGLE_COEF_F", ANGLE_COEF_F);
@@ -50,6 +50,7 @@ int main(int argc, char **argv)
 
 	//Creating subscriber
 	ros::Subscriber sub = n.subscribe(SUBSCRIBER_TOPIC, SUBSCRIBER_BUFFER_SIZE, &SensorNode::messageCallback, nodeBraitenberg2);
+	ros::Subscriber subState = n.subscribe("/assignerState", SUBSCRIBER_BUFFER_SIZE, &SensorNode::stateCallback, nodeBraitenberg2);
 	ros::spin();
 
 	return 0;

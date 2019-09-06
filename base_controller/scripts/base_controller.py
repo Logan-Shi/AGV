@@ -133,7 +133,7 @@ class base_controller():
         # self.odomMsg.angular.z = (self.servoCmdMsg.data - 90) / 2
         # self.odomMsg.linear.x = msg.data * 0.09 * 2 * np.pi / 60
         if (msg.data > 0):
-            gain = 1.08
+            gain = 1.0
         else :
             gain = 1.0
         current_speed = msg.data * gain * 0.09 * 2 * np.pi / 60
@@ -148,7 +148,7 @@ class base_controller():
         dt = (rospy.Time.now() - self.last_time).to_sec()
         self.last_time = rospy.Time.now()
         # spd orthogonal decomposition
-        x_dot = current_speed * math.cos(self.yaw)
+        x_dot = current_speed # * math.cos(self.yaw)
         y_dot = current_speed * math.sin(self.yaw)
 
         # odom calculation

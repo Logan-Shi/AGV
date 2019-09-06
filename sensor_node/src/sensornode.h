@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/Float32.h"
 #include "std_msgs/UInt8.h"
 
 // #include "opencv2/opencv.hpp"
@@ -46,6 +47,7 @@ public:
 	*/
 
 	void messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
+	void stateCallback(const std_msgs::UInt8::ConstPtr& msg);
 
 private:
 
@@ -76,6 +78,7 @@ private:
 	double minDisRight(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
 	double minDisLeft(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
 	double minDis(int, int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
+	int state;
 	
 	//double angleMinFront1;
 	//double angleMinFront2;      // Angle, at which was measured the shortest distance on the right.

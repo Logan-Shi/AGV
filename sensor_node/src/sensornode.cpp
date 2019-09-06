@@ -15,6 +15,7 @@ SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC
 	angleCoef_f = angleC_f;
 	max_dis_f = _max_dis_f;
 	decelerator = _decelerator;
+	state = 0;
 }
 
 SensorNode::~SensorNode()
@@ -32,6 +33,11 @@ void SensorNode::publishTwist(double v, double angle)
 	pubMessage.publish(msg);
 }
 
+void SensorNode::stateCallback(const std_msgs::UInt8::ConstPtr& msg)
+{
+        ROS_INFO("stateCallBack called");
+        state = msg->data;
+}
 
 //Subscriber
 void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
@@ -54,22 +60,18 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	ROS_INFO("distMinRight_f = %f",distMinRight_f);
 	ROS_INFO("distMinLeft_f = %f",distMinLeft_f);
 	
-	std_msgs::UInt8 frontMsg;
-	frontMsg.data = 0;
-	if (distMinRight_f < 1 or distMinLeft_f < 1)
-	{
-		frontMsg.data = 1;
-		if (distMinRight_f < 0.4 or distMinLeft_f < 0.4)
-		{
-			frontMsg.data = 2;
-		}
-	}
-	else
-	{
-		frontMsg.data = 0;
-	}
+	geometry_msgs::Twist frontMsg;
+	frontMsg.linear.x = distMinLeft_f;
+	frontMsg.linear.y = distMinRight_f;
+	frontMsg.angular.x = distMinLeft;
+	frontMsg.angular.y = distMinRight;
 	pubFrontMsg.publish(frontMsg);
-
+        
+        if (state == 1)
+            distMinLeft /= 2;
+        else if (state == 2)
+            distMinRight /=2;
+         
 	double angle = 0;
 	if (distMinLeft >= distMinRight)
 	{
