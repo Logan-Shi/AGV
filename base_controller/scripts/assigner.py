@@ -30,11 +30,11 @@ class assigner():
                            'PARKONE'  : 9,
                            'PARKTWO'  : 10,
                            'FINISH'   : 11}
-        self.sim = 1 # 1 as sim
-        self.indicator = 1
-        self.lightStatusMsg = 0 # 0 as stop, 1 as right
+        self.sim = 0 # 1 as sim
+        self.indicator = 0
+        self.lightStatusMsg = 1 # 0 as stop, 1 as right
         self.parkMsg = 0 # 1 as spot one, 2 as spot two
-        self.state = 0
+        self.state = 7
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
             self.left_turn_pose = Pose(Point(0.69,-0.3,0),Quaternion(0,0,0.5287,0.8488))
@@ -47,14 +47,14 @@ class assigner():
             self.park_one_pose = Pose(Point(1.93,-1.95,0),Quaternion(0,0,0.7,0.7))
             self.park_two_pose = Pose(Point(3,-1.95,0),Quaternion(0,0,0.7,0.7))
         else:
-            self.start_turn_pose = Pose(Point(4.9,-3.98,0),Quaternion(0,0,0.04,1)) 
-            self.left_turn_pose = Pose(Point(3.75,-3.92,0),Quaternion(0,0,0.59,0.8))
-            self.right_turn_pose = Pose(Point(6.68,-0.6,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(1.8,-2.5,0),Quaternion(0,0,-0.52,0.85))
-            self.exit_right_pose = Pose(Point(11.11,-1.29,0),Quaternion(0,0,-0.56,0.83))
-            self.exit_turn_pose = Pose(Point(1.27,-1.67,0),Quaternion(0,0,0,1))
-            self.straight_lane_pose = Pose(Point(13,4,0),Quaternion(0,0,1,0))
-            self.straight_exit_pose = Pose(Point(7,4,0),Quaternion(0,0,1,0))
+            self.start_turn_pose = Pose(Point(-1.57,0.2,0),Quaternion(0,0,0.04,1)) 
+            self.left_turn_pose = Pose(Point(-2.3,0.08,0),Quaternion(0,0,0.59,0.8))
+            self.right_turn_pose = Pose(Point(-2.6,0.6,0),Quaternion(0,0,-0.5287,0.8488))
+            self.exit_left_pose = Pose(Point(-7.46,-0.4,0),Quaternion(0,0,-0.52,0.85))
+            self.exit_right_pose = Pose(Point(-7.4,0.7,0),Quaternion(0,0,-0.56,0.83))
+            self.exit_turn_pose = Pose(Point(-8.0,-0.56,0),Quaternion(0,0,0,1))
+            self.straight_lane_pose = Pose(Point(-9.3,-3,0),Quaternion(0,0,1,0))
+            self.straight_exit_pose = Pose(Point(-3.8,-3.3,0),Quaternion(0,0,1,0))
             self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
             self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
 
@@ -158,7 +158,7 @@ class assigner():
         if self.state == self.car_states['RIGHT']:
             self.rightCmd()
             rospy.loginfo('turning right')
-            if self.isArrivedLineY(self.right_turn_pose):
+            if self.isArrived(self.right_turn_pose):
                 self.state = self.car_states['TURNRIGHT']
             else:
                 self.state = self.car_states['RIGHT']
@@ -171,7 +171,7 @@ class assigner():
         if self.state == self.car_states['LEFT']:
             self.leftCmd()
             rospy.loginfo('turning left')
-            if self.isArrivedLineY(self.left_turn_pose):
+            if self.isArrived(self.left_turn_pose):
                 self.state = self.car_states['TURNLEFT']
             else:
                 self.state = self.car_states['LEFT']
@@ -183,7 +183,7 @@ class assigner():
     def right(self):
         if self.state == self.car_states['TURNRIGHT']:
             rospy.loginfo('on the right')
-            if self.isArrivedLineY(self.exit_right_pose):
+            if self.isArrived(self.exit_right_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['TURNRIGHT']
@@ -191,7 +191,7 @@ class assigner():
     def left(self):
         if self.state == self.car_states['TURNLEFT']:
             rospy.loginfo('on the left')
-            if self.isArrivedLineY(self.exit_left_pose):
+            if self.isArrived(self.exit_left_pose):
                 self.state = self.car_states['EXITTURN']
             else:
                 self.state = self.car_states['TURNLEFT']
@@ -214,7 +214,7 @@ class assigner():
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
-            if self.isArrivedLineX(self.straight_lane_pose):
+            if self.isArrived(self.straight_lane_pose):
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']

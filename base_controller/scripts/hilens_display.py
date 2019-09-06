@@ -120,6 +120,13 @@ class hilens():
             # sys.sleep(0.02)
             # self.hilensData = 1
             data = makeDetection(self.hilens_socket,4)
+            img_path = '/media/ubuntu/Seagate Backup Plus Drive/tmp/'
+            
+            img = getPhoto(self.hilens_socket)
+            index = len(os.listdir(img_path))
+            #cvShowImage('bbb',img)
+            cv2.imwrite(img_path + str(data[0][0])+'_'+str(index+1)+'.jpg',img)
+            
             if data[0][1] < 0.2:
                 self.hilensData = 0
             else:
