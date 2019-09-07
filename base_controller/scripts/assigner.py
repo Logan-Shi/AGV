@@ -36,7 +36,7 @@ class assigner():
                            'GORIGHT'  : 12,
                            'GOLEFT'   : 13}
         self.sim = 0 # 1 as sim
-        self.indicator = 1 # 1 as left
+        self.indicator = 0 # 1 as left
         self.lightStatusMsg = 0 # 0 as stop, 1 as right
         self.parkMsg = 1 # 1 as spot one, 2 as spot two
         self.state = 0
@@ -70,13 +70,14 @@ class assigner():
         self.leftClear = 0
         self.pose = Pose()
         self.client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
-        self.map_base_link_tf_listener = tf.TransformListener()
+        #self.map_base_link_tf_listener = tf.TransformListener()
         self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner",\
                 Twist, queue_size =1 )
         self.statePub = rospy.Publisher('assignerState', UInt8, queue_size=1)
         rospy.Subscriber('isFront', Twist, self.isFrontCallback)
         rospy.Subscriber('hilensData',UInt8,self.hilenDataCallback)
         rospy.Subscriber('cmd_vel',Twist,self.servoCallback)
+        rospy.Subscriber('odom',Twist,self.updatePose)
         self.isFrontMsg = UInt8()
         self.hilenData = UInt8()
         self.headRight = 2
@@ -93,9 +94,9 @@ class assigner():
             
     def isFrontCallback(self,msg):
         data = min(msg.linear.x, msg.linear.y)
-        if data < 0.4: 
+        if data < 0.45: 
             self.isFrontMsg = 2
-        elif data < 0.7:
+        elif data < 0.6:
             self.isFrontMsg = 1
         else:
             self.isFrontMsg = 0
@@ -174,7 +175,10 @@ class assigner():
                 rospy.loginfo("Goal failed:" + str(self.goal_states[state]))
                 return 1
 
-    def updatePose(self):
+    def updatePose(self,msg):
+        self.pose.position.x = msg.linear.y 
+        
+        '''
         self.map_base_link_tf_listener.waitForTransform('/base_link','/odom',rospy.Time(), rospy.Duration(0.5))
         (trans,rot) = self.map_base_link_tf_listener.lookupTransform('/odom','/base_link',rospy.Time(0))
         self.pose.position.x = trans[0]
@@ -186,6 +190,7 @@ class assigner():
         self.pose.orientation.w = rot[3]
         rospy.loginfo('current pose = ' + str(self.pose.position.x) + ', ' + str(self.pose.position.y))
         rospy.loginfo("state = " + str(self.state))
+        '''
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
@@ -286,7 +291,8 @@ class assigner():
                     rospy.loginfo('left')
                     self.leftCmdP()
                 if (self.rightClear == 0) and (self.exit):
-                    self.updatePose()
+                    rospy.loginfo('current pose = ' + str(self.pose.position.x))
+                    rospy.loginfo("state = " + str(self.state))
                     self.counter = self.pose.position.x
                     self.state = self.car_states['STRAIGHT']
             else:
@@ -299,7 +305,8 @@ class assigner():
                     self.rightCmdP()
                 # if self.isArrivedLineX(self.exit_turn_pose):
                 if (self.leftClear == 0) and (self.exit):
-                    self.updatePose()
+                    rospy.loginfo('current pose = ' + str(self.pose.position.x))
+                    rospy.loginfo("state = " + str(self.state))
                     self.counter = self.pose.position.x
                     self.state = self.car_states['STRAIGHT']
       
@@ -312,7 +319,8 @@ class assigner():
         if self.state == self.car_states['STRAIGHT']:
             if (not self.leftClear) and (not self.rightClear):
                 self.statePublish(0)
-            self.updatePose()
+            rospy.loginfo('current pose = ' + str(self.pose.position.x))
+            rospy.loginfo("state = " + str(self.state))
             if self.pose.position.x - self.counter > 6:
                 rospy.loginfo('current x' + str(self.pose.position.x))
                 rospy.loginfo('counter' + str(self.counter))
@@ -322,7 +330,8 @@ class assigner():
 
     def isArrivedLineX(self,pose):
         isArrivedLineX = 0
-        self.updatePose()
+        rospy.loginfo('current pose = ' + str(self.pose.position.x))
+        rospy.loginfo("state = " + str(self.state))
         if self.abs(self.pose.position.x - pose.position.x) < 0.1:
             isArrivedLineX = 1
             rospy.loginfo('line reached!')
@@ -333,7 +342,8 @@ class assigner():
 
     def isArrivedLineY(self,pose):
         isArrivedLineY = 0
-        self.updatePose()
+        rospy.loginfo('current pose = ' + str(self.pose.position.x))
+        rospy.loginfo("state = " + str(self.state))
         if self.abs(self.pose.position.y - pose.position.y) < 0.1 and \
            self.abs(self.pose.position.x - pose.position.x) < 0.8:
             isArrivedLineY = 1
@@ -345,7 +355,8 @@ class assigner():
 
     def isArrived(self,pose):
         isArrived = 0
-        self.updatePose()
+        rospy.loginfo('current pose = ' + str(self.pose.position.x))
+        rospy.loginfo("state = " + str(self.state))
         if self.abs(self.pose.position.x - pose.position.x) < 0.2 and \
            self.abs(self.pose.position.y - pose.position.y) < 0.2:
             isArrived = 1

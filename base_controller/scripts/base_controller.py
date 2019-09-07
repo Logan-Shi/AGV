@@ -44,7 +44,7 @@ class base_controller():
         self.servoCmdMsg = UInt8()
         self.motorSpdCmdMsg = UInt8()
         self.motorModeCmdMsg = UInt8()
-        self.odomMsg = Odometry()
+        self.odomMsg = Twist()
         self.servoCmdMsg.data = 90
         self.wheelbase = 0.58
         self.x = 0
@@ -58,7 +58,7 @@ class base_controller():
         self.servoCmdPub = rospy.Publisher('servoCmd', UInt8, queue_size=1)
         self.motorSpdCmdPub = rospy.Publisher('motorSpdCmd', UInt8, queue_size=1)
         self.motorModeCmdPub = rospy.Publisher('motorModeCmd', UInt8, queue_size=1)
-        self.odomPub = rospy.Publisher('odom', Odometry, queue_size=1)
+        self.odomPub = rospy.Publisher('odom', Twist, queue_size=1)
         self.tfPub = tf.TransformBroadcaster()
         self.min_speed = 0.3
         self.scale = 121.75
@@ -78,7 +78,7 @@ class base_controller():
         rospy.on_shutdown(self._shutdown)
     
     def cmdCallback(self, msg):
-        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
+        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.linear.x, msg.angular.z, self.wheelbase)
         _servoCmdMsg += self.servo_PID_update( _servoCmdMsg,self.servoCmdMsg.data)
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)
         target_speed = msg.linear.x
@@ -93,14 +93,14 @@ class base_controller():
             self.stopMotor()
 
     def cmdPIDCallback(self, msg):
-        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.twist.twist.linear.x, msg.angular.z, self.wheelbase)
+        _servoCmdMsg = convert_trans_rot_vel_to_steering_angle(self.odomMsg.linear.x, msg.angular.z, self.wheelbase)
         _servoCmdMsg += self.servo_PID_update( _servoCmdMsg,self.servoCmdMsg.data)
         # rospy.loginfo("_servoCmdMsg: " + str(_servoCmdMsg))
         self.servoCmdMsg.data = min(max(0, _servoCmdMsg), 180)    
         target_speed = max(self.min_speed,abs(msg.linear.x)) * np.sign(msg.linear.x)
         self.error[2] = self.error[1]
         self.error[1] = self.error[0]
-        self.error[0] = target_speed - self.odomMsg.twist.twist.linear.x
+        self.error[0] = target_speed - self.odomMsg.linear.x
         if target_speed:
             target_speed += self.KP*(self.error[0]-self.error[1])+self.KI*self.error[0] \
                 +self.KD*(self.error[0]-2*self.error[1]+self.error[2])
@@ -155,7 +155,10 @@ class base_controller():
         self.x += x_dot * dt
         self.y += y_dot * dt
         self.yaw += current_angular_velocity * dt
-
+        self.odomMsg.linear.x = current_speed
+        self.odomMsg.linear.y = self.x
+        self.odomPub.publish(self.odomMsg)
+        '''
         # Odom header msg
         self.odomMsg.header.frame_id = 'odom'
         self.odomMsg.header.stamp =  self.last_time
@@ -177,7 +180,7 @@ class base_controller():
             'base_link',
             'odom'
         )
-
+        '''
     def stopMotor(self):
         self.motorSpdCmdMsg.data = 0
         self.motorModeCmdMsg.data = 0

@@ -35,7 +35,7 @@ void SensorNode::publishTwist(double v, double angle)
 
 void SensorNode::stateCallback(const std_msgs::UInt8::ConstPtr& msg)
 {
-        ROS_INFO("stateCallBack called");
+        //ROS_INFO("stateCallBack called");
         state = msg->data;
 }
 
@@ -136,13 +136,13 @@ double SensorNode::minDis(int startIndex,int endIndex,int minIndex, const sensor
 		}
 		else
 		{
-			printf("ranges[%d] = %f\n",i,msg->ranges[i]);
+			//printf("ranges[%d] = %f\n",i,msg->ranges[i]);
 			if (msg->ranges[i] < temp_dist && msg->ranges[i] > 0.01) 
 			{
 				temp_dist = msg->ranges[i];
 				counter++;
 			}
-			printf("counter = %d\n",counter);
+			//printf("counter = %d\n",counter);
 		}
 	}
 
