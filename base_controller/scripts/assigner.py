@@ -15,6 +15,7 @@ class assigner():
         self.rate = rospy.Rate(10)
         self.counter = 0
         self.cnt = 0
+        self.flag_list=[]
         rospy.on_shutdown(self._shutdown)
         self.goal_states = ('PENDING', 'ACTIVE', 'PREEMPTED',  
                             'SUCCEEDED', 'ABORTED', 'REJECTED', 
@@ -31,12 +32,14 @@ class assigner():
                            'TURNLEFT' : 8,
                            'PARKONE'  : 9,
                            'PARKTWO'  : 10,
-                           'FINISH'   : 11}
+                           'FINISH'   : 11,
+                           'GORIGHT'  : 12,
+                           'GOLEFT'   : 13}
         self.sim = 0 # 1 as sim
-        self.indicator = 0 # 1 as left
-        self.lightStatusMsg = 1 # 0 as stop, 1 as right
+        self.indicator = 1 # 1 as left
+        self.lightStatusMsg = 0 # 0 as stop, 1 as right
         self.parkMsg = 1 # 1 as spot one, 2 as spot two
-        self.state = 2
+        self.state = 0
         self.exit = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
@@ -77,7 +80,7 @@ class assigner():
         self.isFrontMsg = UInt8()
         self.hilenData = UInt8()
         self.headRight = 2
-        self.lastx = 0
+        self.no_signal_bufsize = 0
         rospy.sleep(1)
     
     def servoCallback(self,msg):
@@ -113,6 +116,19 @@ class assigner():
            
 
     def hilenDataCallback(self,msg):
+        #flag = msg.data
+        topk=5
+        self.flag_list.append(msg.data)
+        #self.flag_list_last=[flag_list[-1],flag_list[-2],flag_list[-3],flag_list[-4],flag_list[-5]]
+        flag_list_reverse = list(reversed(self.flag_list))
+        flag_list_top5=flag_list_reverse[0:topk]
+        # flag_list_top5=flag_list_top5.sort()
+        count_num=[]
+        for item in flag_list_top5:
+            count_num.append(flag_list_top5.count(item))
+            max_pos=count_num.index(max(count_num))
+        flag=flag_list_top5[max_pos]
+                
         flag = msg.data
         if flag:
             if flag == 3:
@@ -177,27 +193,45 @@ class assigner():
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
                 self.stop()
+                self.no_signal_bufsize = 0
                 self.state = self.car_states['LIGHT']
             else :
                 rospy.loginfo('signal received.')
                 if lightStatus == 1:
                     rospy.loginfo('entering right')
-                    self.indicator = 0
+                    
+                    self.no_signal_bufsize=0
                     # if self.isArrivedLineX(self.start_turn_pose):
-                    if self.rightClear:
-                        self.state = self.car_states['RIGHT']
-                    else:
-                        self.state = self.car_states['LIGHT']
+                    self.state = self.car_states['GORIGHT']
                 elif lightStatus == 2:
-                    self.indicator = 1
+                    
+                    self.no_signal_bufsize=0
                     rospy.loginfo('entering left')
                     # if self.isArrivedLineX(self.start_turn_pose):
-                    if self.leftClear:
-                        self.state = self.car_states['LEFT']
-                    else:
-                        self.state = self.car_states['LIGHT']
-                else:
+                    self.state = self.car_states['GOLEFT']
+                elif (self.no_signal_bufsize<20):
+                    self.no_signal_bufsize+=1
                     self.state = self.car_states['LIGHT']
+                else:
+                    rospy.loginfo('warnning: can not wait')
+                    self.state = self.car_states['GOLEFT']
+                    self.no_signal_bufsize=0
+                        
+    def lightRight(self):
+        if self.state == self.car_states['GORIGHT']:
+            self.indicator = 0
+            if self.leftClear:
+                self.state = self.car_states['RIGHT']
+            else:
+                self.state = self.car_states['GORIGHT']
+                
+    def lightLeft(self):
+        if self.state == self.car_states['GOLEFT']:
+            self.indicator = 1
+            if self.rightClear:
+                self.state = self.car_states['LEFT']
+            else:
+                self.state = self.car_states['GOLEFT']
                 
     def turnRight(self):
         if self.state == self.car_states['RIGHT']:
@@ -379,6 +413,8 @@ class assigner():
     def spin(self):
         while not rospy.is_shutdown():
             self.waitforLight()
+            self.lightLeft()
+            self.lightRight()
             self.turnLeft()
             self.left()
             self.turnRight()
