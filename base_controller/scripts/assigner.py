@@ -35,7 +35,7 @@ class assigner():
         self.sim = 0 # 1 as sim
         self.indicator = 0 # 1 as left
         self.lightStatusMsg = 0 # 0 as stop, 1 as right
-        self.parkMsg = 1 # 1 as spot one, 2 as spot two
+        self.parkMsg = 2 # 1 as spot one, 2 as spot two
         self.state = 0
         self.exit = 0
         if self.sim:
@@ -88,13 +88,13 @@ class assigner():
             self.isFrontMsg = 0
         if msg.angular.y > 0.6:
             self.leftClear = 1
-            if msg.angular.y > 0.8:
+            if msg.angular.y > 0.9:
                 self.leftClear = 2
         else:
             self.leftClear = 0
         if msg.angular.x > 0.6:
             self.rightClear = 1
-            if msg.angular.x > 0.8:
+            if msg.angular.x > 0.9:
                 self.rightClear = 2
         else:
             self.rightClear = 0
@@ -218,12 +218,14 @@ class assigner():
     def right(self):
         if self.state == self.car_states['TURNRIGHT']:
             rospy.loginfo('on the right')
+            self.cnt = 0
             self.statePublish(0)
             self.state = self.car_states['EXITTURN']
 
     def left(self):
         if self.state == self.car_states['TURNLEFT']:
             rospy.loginfo('on the left')
+            self.cnt = 0
             self.statePublish(0)
             self.state = self.car_states['EXITTURN']
 
@@ -234,19 +236,25 @@ class assigner():
             if self.indicator:
                 if self.rightClear == 2:
                     self.exit = 1
-                    rospy.loginfo('left clear')
+                    
+                    rospy.loginfo('right clear')
                     rospy.loginfo('left')
-                    self.statePublish(1)
-                if (not self.rightClear == 2) and self.exit:
-                        self.state = self.car_states['STRAIGHT']
+                    self.leftCmdP()
+                if (self.rightClear == 0) and (self.exit):
+                    self.updatePose()
+                    self.counter = self.pose.position.x
+                    self.state = self.car_states['STRAIGHT']
             else:
                 if self.leftClear == 2:
                     self.exit = 1 
+                    
                     rospy.loginfo('left clear')
                     rospy.loginfo('right')
-                    self.statePublish(2)
+                    self.rightCmdP()
                 # if self.isArrivedLineX(self.exit_turn_pose):
-                if (not self.leftClear == 2) and self.exit:
+                if (self.leftClear == 0) and (self.exit):
+                    self.updatePose()
+                    self.counter = self.pose.position.x
                     self.state = self.car_states['STRAIGHT']
       
             # if not self.sendGoal(self.exit_turn_pose):
@@ -257,7 +265,8 @@ class assigner():
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
             self.statePublish(0)
-            if self.isArrivedLineX(self.straight_lane_pose):
+            self.updatePose()
+            if self.pose.position.x - self.counter > 7:
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']
@@ -394,7 +403,6 @@ class assigner():
         self.statePublish(4)
 
     def leftCmd(self):
-        self.counter += 1
         drive_msg = Twist()
         drive_msg.linear.x = 0.7
         drive_msg.angular.z = 0.39
@@ -403,7 +411,6 @@ class assigner():
         rospy.loginfo('go left')
 
     def rightCmd(self):
-        self.counter += 1
         drive_msg = Twist()
         drive_msg.linear.x = 0.7
         drive_msg.angular.z = -0.39
