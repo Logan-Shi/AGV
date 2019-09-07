@@ -36,10 +36,10 @@ class assigner():
                            'GORIGHT'  : 12,
                            'GOLEFT'   : 13}
         self.sim = 0 # 1 as sim
-        self.indicator = 0 # 1 as left
-        self.lightStatusMsg = 0 # 0 as stop, 1 as right
+        self.indicator = 1 # 1 as left
+        self.lightStatusMsg = 2 # 0 as stop, 1 as right
         self.parkMsg = 1 # 1 as spot one, 2 as spot two
-        self.state = 0
+        self.state = 3
         self.exit = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
@@ -81,6 +81,7 @@ class assigner():
         self.isFrontMsg = UInt8()
         self.hilenData = UInt8()
         self.headRight = 2
+        self.straightflag = 0
         self.no_signal_bufsize = 0
         rospy.sleep(1)
     
@@ -118,19 +119,26 @@ class assigner():
 
     def hilenDataCallback(self,msg):
         #flag = msg.data
-        topk=5
+        topk=4
+        topk2 = 8
         self.flag_list.append(msg.data)
         #self.flag_list_last=[flag_list[-1],flag_list[-2],flag_list[-3],flag_list[-4],flag_list[-5]]
         flag_list_reverse = list(reversed(self.flag_list))
         flag_list_top5=flag_list_reverse[0:topk]
+        flag_list_top20=flag_list_reverse[0:topk2]
         # flag_list_top5=flag_list_top5.sort()
         count_num=[]
         for item in flag_list_top5:
             count_num.append(flag_list_top5.count(item))
             max_pos=count_num.index(max(count_num))
         flag=flag_list_top5[max_pos]
-                
-        flag = msg.data
+        
+        count_num_2=[]
+        for item in flag_list_top20:
+            count_num_2.append(flag_list_top20.count(item))
+            max_pos=count_num_2.index(max(count_num_2))
+        flag2=flag_list_top20[max_pos]
+        
         if flag:
             if flag == 3:
                 self.lightStatusMsg = 1
@@ -141,13 +149,15 @@ class assigner():
             elif flag == 1 or flag == 2:
                 self.lightStatusMsg = 0
                 rospy.loginfo('hilens told me to stop')
-            elif self.state == 4:
-                if flag == 5:
-                    self.parkMsg = 1
-                    rospy.loginfo('hilens told me to park at spot one')
-                elif flag == 6:
-                    self.parkMsg = 2
-                    rospy.loginfo('hilens told me to park at spot two')
+        if self.state == 4:
+            if flag2 == 5:
+                self.parkMsg = 1
+                self.straightflag = 1
+                rospy.loginfo('hilens told me to park at spot one')
+            elif flag2 == 6:
+                self.parkMsg = 2
+                self.straightflag = 1
+                rospy.loginfo('hilens told me to park at spot two')
 
     def sendGoal(self,pose):
         self.client.wait_for_server()
@@ -281,7 +291,8 @@ class assigner():
     def exitTurn(self):
         if self.state == self.car_states['EXITTURN']:
             rospy.loginfo('exiting turn')
-            rospy.loginfo(str(self.exit))
+            rospy.loginfo('exit' + str(self.exit))
+            rospy.loginfo('cnt ' + str(self.cnt))
             if self.indicator:
                 if self.rightClear == 2 and (not self.headRight == 0):
                     self.exit = 1
@@ -289,11 +300,11 @@ class assigner():
                     rospy.loginfo(str(self.headRight))
                     rospy.loginfo('right clear')
                     rospy.loginfo('left')
+                    self.cnt += 1
                     self.leftCmdP()
-                if (self.rightClear == 0) and (self.exit):
-                    rospy.loginfo('current pose = ' + str(self.pose.position.x))
-                    rospy.loginfo("state = " + str(self.state))
-                    self.counter = self.pose.position.x
+                if (self.cnt > 6) and (self.rightClear == 0) and (self.exit):
+                    
+                    rospy.loginfo('exit!!!!')
                     self.state = self.car_states['STRAIGHT']
             else:
                 if self.leftClear == 2 and (not self.headRight == 1):
@@ -302,12 +313,11 @@ class assigner():
                     
                     rospy.loginfo('left clear')
                     rospy.loginfo('right')
+                    self.cnt += 1
                     self.rightCmdP()
                 # if self.isArrivedLineX(self.exit_turn_pose):
-                if (self.leftClear == 0) and (self.exit):
-                    rospy.loginfo('current pose = ' + str(self.pose.position.x))
-                    rospy.loginfo("state = " + str(self.state))
-                    self.counter = self.pose.position.x
+                if (self.cnt > 6) and (self.leftClear == 0) and (self.exit):
+                    rospy.loginfo('exit!!!!')
                     self.state = self.car_states['STRAIGHT']
       
             # if not self.sendGoal(self.exit_turn_pose):
@@ -319,11 +329,8 @@ class assigner():
         if self.state == self.car_states['STRAIGHT']:
             if (not self.leftClear) and (not self.rightClear):
                 self.statePublish(0)
-            rospy.loginfo('current pose = ' + str(self.pose.position.x))
-            rospy.loginfo("state = " + str(self.state))
-            if self.pose.position.x - self.counter > 6:
-                rospy.loginfo('current x' + str(self.pose.position.x))
-                rospy.loginfo('counter' + str(self.counter))
+                rospy.loginfo('got in normal')
+            if self.straightflag:
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']
