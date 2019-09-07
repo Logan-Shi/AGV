@@ -34,9 +34,9 @@ class assigner():
                            'FINISH'   : 11}
         self.sim = 0 # 1 as sim
         self.indicator = 0 # 1 as left
-        self.lightStatusMsg = 0 # 0 as stop, 1 as right
-        self.parkMsg = 2 # 1 as spot one, 2 as spot two
-        self.state = 0
+        self.lightStatusMsg = 1 # 0 as stop, 1 as right
+        self.parkMsg = 1 # 1 as spot one, 2 as spot two
+        self.state = 2
         self.exit = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
@@ -73,28 +73,38 @@ class assigner():
         self.statePub = rospy.Publisher('assignerState', UInt8, queue_size=1)
         rospy.Subscriber('isFront', Twist, self.isFrontCallback)
         rospy.Subscriber('hilensData',UInt8,self.hilenDataCallback)
+        rospy.Subscriber('cmd_vel',Twist,self.servoCallback)
         self.isFrontMsg = UInt8()
         self.hilenData = UInt8()
+        self.headRight = 2
         self.lastx = 0
         rospy.sleep(1)
-
+    
+    def servoCallback(self,msg):
+        if (msg.angular.z > 0.01):
+            self.headRight = 0
+        elif (msg.angular.z < - 0.01):
+            self.headRight = 1
+        else:
+            self.headRight = 2
+            
     def isFrontCallback(self,msg):
         data = min(msg.linear.x, msg.linear.y)
         if data < 0.4: 
             self.isFrontMsg = 2
-        elif data < 0.8:
+        elif data < 0.7:
             self.isFrontMsg = 1
         else:
             self.isFrontMsg = 0
         if msg.angular.y > 0.6:
             self.leftClear = 1
-            if msg.angular.y > 0.9:
+            if msg.angular.y > 1.0:
                 self.leftClear = 2
         else:
             self.leftClear = 0
         if msg.angular.x > 0.6:
             self.rightClear = 1
-            if msg.angular.x > 0.9:
+            if msg.angular.x > 1.0:
                 self.rightClear = 2
         else:
             self.rightClear = 0
@@ -234,9 +244,10 @@ class assigner():
             rospy.loginfo('exiting turn')
             rospy.loginfo(str(self.exit))
             if self.indicator:
-                if self.rightClear == 2:
+                if self.rightClear == 2 and (not self.headRight == 0):
                     self.exit = 1
                     
+                    rospy.loginfo(str(self.headRight))
                     rospy.loginfo('right clear')
                     rospy.loginfo('left')
                     self.leftCmdP()
@@ -245,8 +256,9 @@ class assigner():
                     self.counter = self.pose.position.x
                     self.state = self.car_states['STRAIGHT']
             else:
-                if self.leftClear == 2:
+                if self.leftClear == 2 and (not self.headRight == 1):
                     self.exit = 1 
+                    rospy.loginfo(str(self.headRight))
                     
                     rospy.loginfo('left clear')
                     rospy.loginfo('right')
@@ -264,9 +276,12 @@ class assigner():
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
-            self.statePublish(0)
+            if (not self.leftClear) and (not self.rightClear):
+                self.statePublish(0)
             self.updatePose()
-            if self.pose.position.x - self.counter > 7:
+            if self.pose.position.x - self.counter > 6:
+                rospy.loginfo('current x' + str(self.pose.position.x))
+                rospy.loginfo('counter' + str(self.counter))
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']

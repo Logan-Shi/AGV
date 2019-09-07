@@ -72,9 +72,9 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
         else if (state == 2)
             distMinRight /=angleCoef_f;
         else if (state == 3)
-            distMinLeft = 0.35;
+            distMinLeft = 0.45;
         else if (state == 4)
-            distMinRight = 0.35;
+            distMinRight = 0.45;
              
 	double angle = 0;
 	if (distMinLeft >= distMinRight)

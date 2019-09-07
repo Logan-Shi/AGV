@@ -120,8 +120,10 @@ class hilens():
             # sys.sleep(0.02)
             # self.hilensData = 1
             data = makeDetection(self.hilens_socket,4)
-         
-            if data[0][1] < 0.1:
+            if data[0][0] == 1:
+                if data[0][1] < 0.3:
+                    self.hilensData = 0
+            elif data[0][1] < 0.1:
                 self.hilensData = 0
             else:
                 self.hilensData = data[0][0]
