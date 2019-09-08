@@ -97,7 +97,7 @@ class assigner():
         data = min(msg.linear.x, msg.linear.y)
         if data < 0.45: 
             self.isFrontMsg = 2
-        elif data < 0.6:
+        elif data < 0.5:
             self.isFrontMsg = 1
         else:
             self.isFrontMsg = 0
@@ -459,21 +459,21 @@ class assigner():
 
     def leftCmdP(self):
         drive_msg = Twist()
-        drive_msg.linear.x = 0.7
+        drive_msg.linear.x = 0.9
         drive_msg.angular.z = 0.2
         # self.velPub.publish(drive_msg)
         self.statePublish(3)
         
     def rightCmdP(self): 
         drive_msg = Twist()
-        drive_msg.linear.x = 0.7
+        drive_msg.linear.x = 0.9
         drive_msg.angular.z = 0.2
         # self.velPub.publish(drive_msg)
         self.statePublish(4)
 
     def leftCmd(self):
         drive_msg = Twist()
-        drive_msg.linear.x = 0.7
+        drive_msg.linear.x = 0.9
         drive_msg.angular.z = 0.39
         # self.velPub.publish(drive_msg)
         self.statePublish(1)
@@ -481,7 +481,7 @@ class assigner():
 
     def rightCmd(self):
         drive_msg = Twist()
-        drive_msg.linear.x = 0.7
+        drive_msg.linear.x = 0.9
         drive_msg.angular.z = -0.39
         # self.velPub.publish(drive_msg)
         self.statePublish(2)
