@@ -68,11 +68,10 @@ private:
 	double max_dis;            // detect distance
 	double distMinLeft;        // Minimum distance masured by sensor on the left.
 	double distMinRight;
-	double distFront;
 
-	double angleCoef_f;       // Coeficient for transfering angles to speed.
-	double max_dis_f;            // detect distance
-	double distMinLeft_f;        // Minimum distance masured by sensor on the left.
+	double cut_off_ratio;       
+	double side_dis;     
+	double distMinLeft_f;        
 	double distMinRight_f;
 	double decelerator;
 	double minDisRight(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
