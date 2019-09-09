@@ -37,9 +37,9 @@ class assigner():
                            'GOLEFT'   : 13}
         self.sim = 0 # 1 as sim
         self.indicator = 1 # 1 as left
-        self.lightStatusMsg = 2 # 0 as stop, 1 as right
+        self.lightStatusMsg = 0 # 0 as stop, 1 as right
         self.parkMsg = 1 # 1 as spot one, 2 as spot two
-        self.state = 3
+        self.state = 0
         self.exit = 0
         if self.sim:
             self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
