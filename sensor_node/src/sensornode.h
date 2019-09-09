@@ -33,7 +33,8 @@ public:
 	* speed     Value, which will be stored in robotSpeed.
 	*/
 
-	SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double ,double, int, int , double, double, double);
+	SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double ,
+		           double ,int ,double, int, int , double, double, double);
 
 	~SensorNode();
 
@@ -60,11 +61,13 @@ private:
 
 	void publishTwist(double,double);
 	double robotSpeed;        // Speed of robot [m/s].
-	double angleCoef;       // Coeficient for transfering angles to speed.
+	double KP;
+	double KI;
+	double KD;       // Coeficient for transfering angles to speed.
 	int min_degree;             // detect angle in degrees
 	int max_degree;             // detect angle in degrees
+	int max_degree_avoid;
 	int size;
-	double min_dis;            // detect distance
 	double max_dis;            // detect distance
 	double distMinLeft;        // Minimum distance masured by sensor on the left.
 	double distMinRight;
@@ -73,6 +76,8 @@ private:
 	double side_dis;     
 	double distMinLeft_f;        
 	double distMinRight_f;
+	double distMinLeftAvoid;        
+	double distMinRightAvoid;
 	double decelerator;
 	double minDisRight(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);
 	double minDisLeft(int, int, const sensor_msgs::LaserScan::ConstPtr& msg);

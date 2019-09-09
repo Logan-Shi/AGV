@@ -66,6 +66,7 @@ class assigner():
 
 
         self.flag_list=[]
+        self.flag_list_laser=[]
         rospy.on_shutdown(self._shutdown)
 
         self.pose = Pose()
@@ -95,8 +96,18 @@ class assigner():
             self.headingMsg = 'straight'
             
     def laserDataCallback(self,msg):
+        frontDisFilterSize = 3
         frontDis = min(msg.linear.x, msg.linear.y)
-        
+        self.flag_list_laser.append(frontDis)
+        flag_list_reverse = list(reversed(self.flag_list_laser))
+        flag_list_front = flag_list_reverse[0:frontDisFilterSize]
+
+        count_num_front = []
+        for item in flag_list_front:
+            count_num_front.append(flag_list_front.count(item))
+            max_pos = count_num_front.index(max(count_num_front))
+        frontDis = flag_list_front[max_pos]
+
         parkingStopDis = 0.45
         dynamicStopDis = 0.5
         

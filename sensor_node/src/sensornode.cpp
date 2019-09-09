@@ -1,16 +1,20 @@
 #include "sensornode.h"
 
 //Constructor and destructor
-SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double _min_dis, double _max_dis, int _min_degree, 
+SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub, 
+	double angleP,double angleI,double angleD, double speed, 
+	int _max_degree_avoid, double _max_dis, int _min_degree, 
 	int _max_degree, double _cut_off_ratio, double _side_dis, double _decelerator)
 {
-	angleCoef = angleC;
+	KP = angleP;
+	KI = angleI;
+	KD = angleD;
 	robotSpeed = speed;
 	pubMessage = pub;
 	pubFrontMsg = frontpub;
 	min_degree = _min_degree;
 	max_degree = _max_degree;
-	min_dis = _min_dis;
+	max_degree_avoid = _max_degree_avoid;
 	max_dis = _max_dis;
 	cut_off_ratio = _cut_off_ratio;
 	side_dis = _side_dis;
@@ -48,15 +52,20 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	ROS_INFO("size = %d",size);
 	int min_index = size / 360 * min_degree;
 	int max_index = size / 360 * max_degree;
+	int max_index_avoid = size /360 * max_degree_avoid;
 	
 	//This cycle goes through array and finds minimum on the left and right
 	distMinLeft = minDisLeft(min_index, max_index, msg);
 	distMinRight = minDisRight(min_index, max_index, msg);
+	distMinLeftAvoid = minDisLeft(min_index, max_index_avoid, msg);
+	distMinRightAvoid = minDisRight(min_index, max_index_avoid, msg);
 	distMinLeft_f = minDisLeft(0,min_index, msg);
 	distMinRight_f = minDisRight(0,min_index, msg);
 
 	ROS_INFO("distMinRight = %f",distMinRight);
 	ROS_INFO("distMinLeft = %f",distMinLeft);
+	ROS_INFO("distMinRightAvoid = %f",distMinRightAvoid);
+	ROS_INFO("distMinLeftAvoid = %f",distMinLeftAvoid);
 	ROS_INFO("distMinRight_f = %f",distMinRight_f);
 	ROS_INFO("distMinLeft_f = %f",distMinLeft_f);
 	
@@ -65,40 +74,48 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	frontMsg.linear.y = distMinRight_f;
 	frontMsg.angular.x = distMinLeft;
 	frontMsg.angular.y = distMinRight;
-	pubFrontMsg.publish(frontMsg);
+	
         
         if (state == 1)
-            distMinLeft /= cut_off_ratio;
+            distMinLeftAvoid /= cut_off_ratio;
         else if (state == 2)
-            distMinRight /= cut_off_ratio;
+            distMinRightAvoid /= cut_off_ratio;
         else if (state == 3)
-            distMinLeft = side_dis;
+            distMinLeftAvoid = side_dis;
         else if (state == 4)
-            distMinRight = side_dis;
+            distMinRightAvoid = side_dis;
              
 	double angle = 0;
-	if (distMinLeft >= distMinRight)
+
+	double offdata = 0;
+	if (distMinLeftAvoid >= distMinRightAvoid)
 	{
-		angle += -angleCoef * (distMinLeft / distMinRight - 1);
+		offdata = -(distMinLeftAvoid / distMinRightAvoid - 1);
 	}
 	else
 	{
-		angle += angleCoef * (distMinRight / distMinLeft - 1);
+		offdata = (distMinRightAvoid / distMinLeftAvoid - 1);
 	}
+
+	double error[3] = {0};
+    error[2] = error[1];
+    error[1] = error[0];
+    error[0] = offdata;
+
+	double feedback = (KP*(error[0]-error[1])+KI*error[0]
+                +KD*(error[0]-2*error[1]+error[2]));
+
+	angle += feedback;
+	frontMsg.linear.z = feedback;
+	pubFrontMsg.publish(frontMsg);
 
 	angle = min(max(-0.48,angle),0.48);
 	
 	ROS_INFO("angle = %f",angle);
 	double v = robotSpeed;
-	if (0 && min(distMinLeft_f,distMinRight_f) < min_dis)
-	{
-		v = 0;
-		angle = 0;
-	}
-	else
-	{
-		v = robotSpeed - decelerator * abs(angle);
-	}
+
+	v = robotSpeed - decelerator * abs(angle);
+
 	ROS_INFO("v = %f",v);
 	publishTwist(v,angle);
 }

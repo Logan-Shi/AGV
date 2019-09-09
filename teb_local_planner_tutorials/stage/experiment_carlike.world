@@ -18,7 +18,7 @@ define floorplan model
 )
 
 resolution 0.02
-interval_sim 100  # simulation timestep in milliseconds
+interval_sim 72  # simulation timestep in milliseconds
 
 window
 (
@@ -47,6 +47,28 @@ floorplan
 model
 (
   name "pedestrian"
+  pose [1.371 0.782 0.000 0.000]
+  size [0.200 0.200 2.000]
+
+  color "blue"
+
+  laser_return 1
+)
+
+model
+(
+  name "static object"
+  pose [1.694 -1.840 0.000 0.000]
+  size [0.200 0.200 2.000]
+
+  color "blue"
+
+  laser_return 1
+)
+
+model
+(
+  name "static object"
   pose [0.000 3.000 0.000 0.000]
   size [0.200 0.200 2.000]
 
@@ -54,6 +76,7 @@ model
 
   laser_return 1
 )
+
 
 # throw in a robot
 carlike_robot
