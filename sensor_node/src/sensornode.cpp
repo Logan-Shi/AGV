@@ -87,34 +87,27 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
              
 	double angle = 0;
 
-	double offdata = 0;
 	if (distMinLeftAvoid >= distMinRightAvoid)
 	{
-		offdata = -(distMinLeftAvoid / distMinRightAvoid - 1);
+		angle = -(distMinLeftAvoid / distMinRightAvoid - 1);
 	}
 	else
 	{
-		offdata = (distMinRightAvoid / distMinLeftAvoid - 1);
+		angle = (distMinRightAvoid / distMinLeftAvoid - 1);
 	}
+	
+	angle*= KP;
 
-	double error[3] = {0};
-    error[2] = error[1];
-    error[1] = error[0];
-    error[0] = offdata;
-
-	double feedback = (KP*(error[0]-error[1])+KI*error[0]
-                +KD*(error[0]-2*error[1]+error[2]));
-
-	angle += feedback;
-	frontMsg.linear.z = feedback;
 	pubFrontMsg.publish(frontMsg);
 
 	angle = min(max(-0.48,angle),0.48);
 	
 	ROS_INFO("angle = %f",angle);
 	double v = robotSpeed;
-
-	v = robotSpeed - decelerator * abs(angle);
+	if (state == 5)
+		v = robotSpeed - decelerator;
+	else
+		v = robotSpeed;
 
 	ROS_INFO("v = %f",v);
 	publishTwist(v,angle);

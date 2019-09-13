@@ -44,6 +44,7 @@ def makeDetection(hilens_socket,keep_top_k):
                 print("no confirm receive")
             else:
                 print('receive confirm')
+            hilens_socket.send(str(keep_top_k).encode())
             receive = hilens_socket.recv(bufsize)
             if not len(receive):
                 print("no rkeep_top_k receive")
@@ -92,7 +93,7 @@ class hilens():
         self.arg = arg
         rospy.init_node('hilens', anonymous=True)
         self.hilensData = UInt8()
-        self.dataPub = rospy.Publisher('hilensData',UInt8, queue_size=1)
+        self.dataPub = rospy.Publisher('/assignerMsg/hilensData',UInt8, queue_size=1)
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self._shutdown)
         self.hilens_socket = socket(AF_INET,SOCK_STREAM)
@@ -118,11 +119,13 @@ class hilens():
             # img = getPhoto(self.hilens_socket)
             # cvShowImage('imgFromHiles',img)
             # sys.sleep(0.02)
-            # self.hilensData = 1
-            data = makeDetection(self.hilens_socket,4)
+            self.hilensData = 0
+            data = makeDetection(self.hilens_socket,2)
             if data[0][0] == 1:
                 if data[0][1] < 0.3:
                     self.hilensData = 0
+                else:
+                    self.hilensData = 1
             elif data[0][1] < 0.1:
                 self.hilensData = 0
             else:
