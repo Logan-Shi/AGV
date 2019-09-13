@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
 	//Creating publisher
 	ros::Publisher pubMessage = n.advertise<geometry_msgs::Twist>(PUBLISHER_TOPIC, PUBLISHER_BUFFER_SIZE);
-	ros::Publisher pubFrontMsg = n.advertise<geometry_msgs::Twist>("isFront", PUBLISHER_BUFFER_SIZE);
+	ros::Publisher pubFrontMsg = n.advertise<geometry_msgs::Twist>("/assignerMsg/isFront", PUBLISHER_BUFFER_SIZE);
 
 	ros::param::get("~ANGLE_P", ANGLE_P);
 	ros::param::get("~ANGLE_I", ANGLE_I);
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	//Creating subscriber
 	ros::Subscriber sub = n.subscribe(SUBSCRIBER_TOPIC, SUBSCRIBER_BUFFER_SIZE, &SensorNode::messageCallback, nodeBraitenberg2);
-	ros::Subscriber subState = n.subscribe("/assignerState", SUBSCRIBER_BUFFER_SIZE, &SensorNode::stateCallback, nodeBraitenberg2);
+	ros::Subscriber subState = n.subscribe("/assignerMsg/assignerState", SUBSCRIBER_BUFFER_SIZE, &SensorNode::stateCallback, nodeBraitenberg2);
 	ros::spin();
 
 	return 0;

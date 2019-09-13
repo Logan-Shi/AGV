@@ -10,14 +10,14 @@
 <launch>
 
   <!--  ************** Bot bringup ***************  -->
-  <include file="$(find base_controller)/launch/base_controller.launch" />
-	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
+<!--   <include file="$(find base_controller)/launch/base_controller.launch" />
+	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/> -->
 	
   <!--  ************** Localization ***************  -->
   <include file="$(find base_controller)/launch/gmapping.launch" />
 
   <!--  ************** Navigation ***************  -->
-  <include file="$(find base_controller)/launch/move_base.launch" />
+<!--   <include file="$(find base_controller)/launch/move_base.launch" /> -->
 
 
 	<!--  ****** Maps *****  -->

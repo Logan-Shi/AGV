@@ -27,11 +27,11 @@
     <!-- <node pkg="base_controller" type="assigner.py" name="assigner" output="screen"/> -->
 <!--     <include file="$(find sensor_node)/launch/sensor_node_sim.launch" /> -->
     <!--  ************** Navigation ***************  -->
-   <!--  <include file="$(find base_controller)/launch/move_base.launch" /> -->
+    <include file="$(find base_controller)/launch/move_base.launch" />
     <!-- <node pkg="ta_lab3" type="safety.py" name="safetyStopper" output="screen"/> -->
 
 	<!--  ****** Maps *****  -->
-<!--   <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/mymap.yaml" output="screen">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/mymap.yaml" output="screen">
                 <param name="frame_id" value="map"/>
   </node>
 
@@ -45,7 +45,7 @@
     <param name="initial_cov_yy"            value="0.04"/>
     <param name="initial_cov_aa"            value="0.07"/>
 
-  </node> -->
+  </node>
 	<!--  **************** Visualisation ****************  -->
 <!-- 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
  -->

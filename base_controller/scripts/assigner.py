@@ -14,10 +14,10 @@ class assigner():
         rospy.init_node('assigner_py')
         self.rate = rospy.Rate(10)
         self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner", Twist, queue_size =1 )
-        self.statePub = rospy.Publisher('assignerState', UInt8, queue_size=1)
-        rospy.Subscriber('isFront', Twist, self.laserDataCallback)
-        rospy.Subscriber('hilensData',UInt8,self.hilensDataCallback)
-        rospy.Subscriber('cmd_vel',Twist,self.servoCallback)
+        self.statePub = rospy.Publisher('/assignerMsg/assignerState', UInt8, queue_size=1)
+        rospy.Subscriber('/assignerMsg/isFront', Twist, self.laserDataCallback)
+        rospy.Subscriber('/assignerMsg/hilensData',UInt8,self.hilensDataCallback)
+        #rospy.Subscriber('cmd_vel',Twist,self.servoCallback)
 
         self.car_states = {'LIGHT'    : 0,
                            'LEFT'     : 1,
@@ -34,7 +34,7 @@ class assigner():
         self.sim = 0 # 1 as sim
         self.indicator = 2 # 1 as left
         self.lightStatusMsg = 1 # 0 as stop, 1 as right
-        self.parkMsg = 0 # 0 as spot one, 1 as spot two
+        self.parkMsg = 1 # 1 as spot one, 2 as spot two
         self.sideWayClearWindow = 0
         self.state = 0
 
@@ -64,7 +64,6 @@ class assigner():
             self.park_two = Pose(Point(2,1.27,0),Quaternion(0,0,1,0))
             self.exit_pose = Pose(Point(0,0,0),Quaternion(0,0,1,0))
 
-
         self.flag_list=[]
         self.flag_list_laser=[]
         rospy.on_shutdown(self._shutdown)
@@ -78,6 +77,7 @@ class assigner():
                             'LOST')
 
         self.sideWayClearCnt = 0
+        self.cnt = 0
         self.rightClearMsg = 0
         self.leftClearMsg = 0
         self.isFrontMsg = 0
@@ -102,14 +102,13 @@ class assigner():
         flag_list_reverse = list(reversed(self.flag_list_laser))
         flag_list_front = flag_list_reverse[0:frontDisFilterSize]
 
-        count_num_front = []
-        for item in flag_list_front:
-            count_num_front.append(flag_list_front.count(item))
-            max_pos = count_num_front.index(max(count_num_front))
-        frontDis = flag_list_front[max_pos]
+        sums = 0 
+        for i in range(len(flag_list_front)):
+            sums += flag_list_front[i]
+        frontDis = sums/len(flag_list_front)
 
-        parkingStopDis = 0.45
-        dynamicStopDis = 0.5
+        parkingStopDis = 0.55
+        dynamicStopDis = 1.0
         
         if frontDis < parkingStopDis: 
             self.isFrontMsg = 2 # less than parkingStopDis
@@ -324,7 +323,9 @@ class assigner():
         if self.state == self.car_states['STRAIGHT']:
             if (not self.leftClearMsg) and (not self.rightClearMsg):
                 self.middleCmd()
-            if self.straightflag:
+                self.cnt += 1
+                rospy.loginfo('side way blocked for ' + str(self.cnt))
+            if self.cnt > 60:
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']
@@ -348,7 +349,7 @@ class assigner():
         if self.state == self.car_states['PARK']:
             rospy.loginfo('parking...')
             park = self.parkMsg
-            if park:
+            if park == 1:
                 self.state = self.car_states['PARKONE']
             else:
                 self.state = self.car_states['PARKTWO']
