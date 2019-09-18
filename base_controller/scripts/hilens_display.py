@@ -25,6 +25,14 @@ def recvall(sock, count):
     return buf
 
 def getPhoto(hilens_socket):
+    '''从hilens中获得一张当前摄像头的照片
+    
+    Arguments:
+        hilens_socket {socket.socket} -- [用于与hilens连接的socket]
+    
+    Returns:
+        [numpy.ndarray ] -- [hilens当前捕捉到的图片，色彩空间为BGR]
+    '''
     hilens_socket.send('photo'.encode())
     length = recvall(hilens_socket,16)
     stringData = recvall(hilens_socket, int(length))
@@ -34,6 +42,17 @@ def getPhoto(hilens_socket):
     return decimg
 
 def makeDetection(hilens_socket,keep_top_k):
+    '''从hilens中获得当前检测到的keep_top_k个对象的标签和置信度
+    
+    [description]
+    
+    Arguments:
+        hilens_socket {socket.socket} -- [用于与hilens连接的socket]
+        keep_top_k {int} -- [让hilens返回的检测到的对象的个数]
+    
+    Returns:
+        [list] -- [一个包含keep_top_k个元组的列表，其中每个元组为(标签,置信度)]
+    '''
     bufsize = 1024
     getResult = False
     while not getResult:
@@ -50,7 +69,7 @@ def makeDetection(hilens_socket,keep_top_k):
                 print("no rkeep_top_k receive")
                 continue
             rkeep_top_k = int(receive.decode())
-            print("get rkeep_top_k: ",rkeep_top_k)
+            #print("get rkeep_top_k: ",rkeep_top_k)
             hilens_socket.send('done'.encode())
             result = []
             for i in range(rkeep_top_k):
@@ -69,7 +88,7 @@ def makeDetection(hilens_socket,keep_top_k):
             print(sys.exc_info()[1])
             print("making detection again")
             continue
-    print("detection result:",result)
+    #print("detection result:",result)
     return result
         
 
