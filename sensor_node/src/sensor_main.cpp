@@ -10,9 +10,11 @@ double ROBOT_SPEED = 0.7; // Speed of robot [m/s].
 int MAX_ANGLE_AVOID = 60;
 double MAX_DIS = 1.4;
 double SIDE_DIS = 0.45;
+double SIDE_DIS_TEST = 0.45;
 int MIN_ANGLE = 15;
 int MAX_ANGLE = 75;
 double DECEL = 0.1;
+int MIN_ANGLE_TEST = 30;
 						   //define PUBLISHER_TOPIC "/syros/base_cmd_vel"
 # define PUBLISHER_TOPIC "/cmd_vel_mux/input/laser"
 						   // #define SUBSCRIBER_TOPIC "/syros/laser_laser"
@@ -44,20 +46,24 @@ int main(int argc, char **argv)
 	ros::param::get("~MAX_ANGLE_AVOID", MAX_ANGLE_AVOID);
 	ros::param::get("~MAX_DIS", MAX_DIS);
 	ros::param::get("~SIDE_DIS", SIDE_DIS);
+	ros::param::get("~SIDE_DIS_TEST", SIDE_DIS_TEST);
 	ros::param::get("~MIN_ANGLE", MIN_ANGLE);
 	ros::param::get("~MAX_ANGLE", MAX_ANGLE);
 	ros::param::get("~DECEL", DECEL);
+	ros::param::get("~MIN_ANGLE_TEST", MIN_ANGLE_TEST);
 	
 	//Creating object, which stores data from sensors and has methods for
 	//publishing and subscribing
 	SensorNode *nodeBraitenberg2 = new SensorNode(pubMessage,pubFrontMsg,
 	 ANGLE_P,ANGLE_I,ANGLE_D, ROBOT_SPEED, 
 	 MAX_ANGLE_AVOID, MAX_DIS, MIN_ANGLE, 
-	 MAX_ANGLE,CUT_OFF_RATIO, SIDE_DIS,DECEL);
+	 MAX_ANGLE,CUT_OFF_RATIO, SIDE_DIS,DECEL,
+	 MIN_ANGLE_TEST,SIDE_DIS_TEST);
 
 	//Creating subscriber
 	ros::Subscriber sub = n.subscribe(SUBSCRIBER_TOPIC, SUBSCRIBER_BUFFER_SIZE, &SensorNode::messageCallback, nodeBraitenberg2);
 	ros::Subscriber subState = n.subscribe("/assignerMsg/assignerState", SUBSCRIBER_BUFFER_SIZE, &SensorNode::stateCallback, nodeBraitenberg2);
+	ros::Subscriber subSpeed = n.subscribe("/assignerMsg/speed", SUBSCRIBER_BUFFER_SIZE, &SensorNode::speedCallback, nodeBraitenberg2);
 	ros::spin();
 
 	return 0;

@@ -12,8 +12,9 @@ import math
 class assigner():
     def __init__(self, arg):
         rospy.init_node('assigner_py')
-        self.rate = rospy.Rate(20)
-        self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner", Twist, queue_size =1 )
+        self.rate = rospy.Rate(60)
+        self.velPub = rospy.Publisher("/cmd_vel_mux/input/assigner", Twist, queue_size =1)
+        self.velAlterPub = rospy.Publisher("/assignerMsg/speed", Twist, queue_size =1)
         self.statePub = rospy.Publisher('/assignerMsg/assignerState', UInt8, queue_size=1)
         rospy.Subscriber('/assignerMsg/isFront', Twist, self.laserDataCallback)
         rospy.Subscriber('/assignerMsg/hilensData',UInt8,self.hilensDataCallback)
@@ -32,8 +33,8 @@ class assigner():
                            'GORIGHT'  : 10,
                            'GOLEFT'   : 11}
         self.sim = 0 # 1 as sim
-        self.indicator = 2 # 1 as left
-        self.lightStatusMsg = 0 # 0 as stop, 1 as right
+        self.indicator = 1 # 1 as left
+        self.lightStatusMsg = 2 # 0 as stop, 1 as right
         self.parkMsg = 2 # 1 as spot one, 2 as spot two
         self.sideWayClearWindow = 0
         self.state = 0
@@ -101,6 +102,9 @@ class assigner():
         frontDisFilterSize = 2
         frontDis = min(msg.linear.x, msg.linear.y)
         self.flag_list_laser.append(frontDis)
+        if len(self.flag_list_laser) > 10:
+            self.flag_list_laser = self.flag_list_laser[5:]
+
         flag_list_reverse = list(reversed(self.flag_list_laser))
         flag_list_front = flag_list_reverse[0:frontDisFilterSize]
 
@@ -153,6 +157,8 @@ class assigner():
         parkFilterSize = 4
 
         self.flag_list.append(msg.data)
+        if len(self.flag_list) > 100:
+            self.flag_list = self.flag_list[90:]
         flag_list_reverse = list(reversed(self.flag_list))
         flag_list_light = flag_list_reverse[0:lightFilterSize]
         flag_list_park = flag_list_reverse[0:parkFilterSize]
@@ -203,62 +209,12 @@ class assigner():
                 self.parkMsg = 2
                 rospy.loginfo('hilens told me to park at spot two')
 
-
-    # def sendGoal(self,pose):
-    #     self.client.wait_for_server()
-
-    #     goal = MoveBaseGoal()
-    #     goal.target_pose.header.frame_id = "map"
-    #     goal.target_pose.header.stamp = rospy.Time.now()
-    #     goal.target_pose.pose = pose
-
-    #     self.client.send_goal(goal)
-    #     self.stop()
-
-    #     return self.checkGoalStatus()
-            
-    # def checkGoalStatus(self):
-    #     if not self.client.wait_for_result(rospy.Duration(300)):
-    #         rospy.loginfo("Timed out to achieve goal!")
-    #         return 2
-    #     else:
-    #         state = self.client.get_state()
-    #         if self.goal_states[state] == 'SUCCEEDED': 
-    #             rospy.loginfo("Goal reached!")
-    #             return 0
-    #         else:
-    #             rospy.loginfo("Goal failed:" + str(self.goal_states[state]))
-    #             return 1
-
-    # def updatePose(self):
-    #     self.map_base_link_tf_listener.waitForTransform('/base_link','/map',rospy.Time(), rospy.Duration(0.5))
-    #     (trans,rot) = self.map_base_link_tf_listener.lookupTransform('/map','/base_link',rospy.Time(0))
-    #     self.pose.position.x = trans[0]
-    #     self.pose.position.y = trans[1]
-    #     self.pose.position.z = trans[2]
-    #     self.pose.orientation.x = rot[0]
-    #     self.pose.orientation.y = rot[1]
-    #     self.pose.orientation.z = rot[2]
-    #     self.pose.orientation.w = rot[3]
-    #     rospy.loginfo('current position = ' + str(self.pose.position.x) + ', ' + str(self.pose.position.y))
-    
     def showState(self):
         rospy.loginfo("state = " + str(self.state))
 
-    def isArrived(self,target_pose,x_window,y_window):
-        isArrived = 0
-        self.updatePose()
-        dist = hypot(self.pose.position.x - target_pose.position.x, self.pose.position.y - target_pose.position.y)
-        if dist < 0.4:
-            isArrived = 1
-            rospy.loginfo('target reached!')
-        else:
-            rospy.loginfo('target position = ' + str(pose.position.x) + ', ' + str(pose.position.y))
-            rospy.loginfo('approaching target...')
-        return isArrived
-
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
+            self.alterVel(0.9)
             lightStatus = self.lightStatusMsg
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
@@ -286,6 +242,7 @@ class assigner():
     def lightRight(self):
         if self.state == self.car_states['GORIGHT']:
             self.indicator = 0
+            self.alterVel(0.9)
             #self.decelCmd()
             if self.turnClear:
                 self.state = self.car_states['RIGHT']
@@ -295,6 +252,7 @@ class assigner():
     def lightLeft(self):
         if self.state == self.car_states['GOLEFT']:
             self.indicator = 1
+            self.alterVel(0.9)
             #self.decelCmd()
             if self.turnClear:
                 self.state = self.car_states['LEFT']
@@ -303,6 +261,7 @@ class assigner():
                 
     def turnRight(self):
         if self.state == self.car_states['RIGHT']:
+            self.alterVel(0.9)
             self.rightCmd()
             self.cnt += 1
             rospy.loginfo('side way blocked for ' + str(self.cnt))
@@ -314,6 +273,7 @@ class assigner():
 
     def turnLeft(self):
         if self.state == self.car_states['LEFT']:
+            self.alterVel(0.9)
             self.leftCmd()
             self.cnt += 1
             rospy.loginfo('side way blocked for ' + str(self.cnt))
@@ -325,6 +285,7 @@ class assigner():
 
     def enterTurn(self):
         if self.state == self.car_states['ENTERTURN']:
+            self.alterVel(0.9)
             if self.indicator:
                 self.leftCmd()    
             else:
@@ -334,6 +295,7 @@ class assigner():
 
     def exitTurn(self):
         if self.state == self.car_states['EXITTURN']:
+            self.alterVel(0.9)
             rospy.loginfo('exiting turn')
             rospy.loginfo('sideWayClearCnt ' + str(self.sideWayClearCnt))
             if self.indicator:
@@ -357,8 +319,9 @@ class assigner():
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
+            self.alterVel(0.9)
             if (not self.leftClearMsg) and (not self.rightClearMsg):
-                self.leftCmd()
+                self.leftCmdTest()
                 #self.cnt += 1
                 #rospy.loginfo('side way blocked for ' + str(self.cnt))
             if self.straightflag and (not self.isFrontMsg):
@@ -368,6 +331,7 @@ class assigner():
 
     def waitforDynamicObj(self):
         if self.state == self.car_states['DYNAMIC']:
+            self.alterVel(0.9)
             self.middleCmd() 
             rospy.loginfo('waiting for dynamic obj')
             isFront = self.isFrontMsg
@@ -384,6 +348,7 @@ class assigner():
 
     def park(self):
         if self.state == self.car_states['PARK']:
+            self.alterVel(0.9)
             rospy.loginfo('parking...')
             park = self.parkMsg
             if park == 1:
@@ -393,6 +358,7 @@ class assigner():
 
     def parkOne(self):
         if self.state == self.car_states['PARKONE']:
+            self.alterVel(0.9)
             rospy.loginfo('... to spot one')
             self.leftCmd()
             if self.isFrontMsg == 2:
@@ -400,6 +366,7 @@ class assigner():
                     
     def parkTwo(self):
         if self.state == self.car_states['PARKTWO']:
+            self.alterVel(0.9)
             rospy.loginfo('... to spot two')
             if self.startParkMsg == 1:
                 self.leftCmd()
@@ -437,6 +404,11 @@ class assigner():
         self.velPub.publish(drive_msg)
         rospy.loginfo('stop')
 
+    def alterVel(self,v):
+        speed_msg = Twist()
+        speed_msg.linear.x = v
+        self.velAlterPub.publish(speed_msg)
+    
     def parkCmd(self):
         rospy.loginfo('park mode')
         self.avoidStatePublish(2)
@@ -453,9 +425,13 @@ class assigner():
         rospy.loginfo('going along the right wall')
         self.avoidStatePublish(4)
 
-    def decelCmd(self): 
-        rospy.loginfo('decel')
+    def leftCmdTest(self): 
+        rospy.loginfo('left test')
         self.avoidStatePublish(5)
+
+    def rightCmdTest(self): 
+        rospy.loginfo('right test')
+        self.avoidStatePublish(6)
             
 if __name__ == '__main__':
     try:

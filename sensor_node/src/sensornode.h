@@ -34,7 +34,7 @@ public:
 	*/
 
 	SensorNode(ros::Publisher pub,ros::Publisher frontpub, double angleC, double speed, double ,
-		           double ,int ,double, int, int , double, double, double);
+		           double ,int ,double, int, int , double, double, double,int,double);
 
 	~SensorNode();
 
@@ -46,7 +46,7 @@ public:
 	* @param msg Message, which came from robot and contains data from
 	* laser scan.
 	*/
-
+	void speedCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	void messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 	void stateCallback(const std_msgs::UInt8::ConstPtr& msg);
 
@@ -64,7 +64,8 @@ private:
 	double KP;
 	double KI;
 	double KD;       // Coeficient for transfering angles to speed.
-	int min_degree;             // detect angle in degrees
+	int min_degree;
+	int min_degree_test;             // detect angle in degrees
 	int max_degree;             // detect angle in degrees
 	int max_degree_avoid;
 	int size;
@@ -73,7 +74,8 @@ private:
 	double distMinRight;
 
 	double cut_off_ratio;       
-	double side_dis;     
+	double side_dis;   
+	double side_dis_test;  
 	double distMinLeft_f;        
 	double distMinRight_f;
 	double distMinLeftAvoid;        

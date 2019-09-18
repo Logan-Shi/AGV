@@ -4,7 +4,8 @@
 SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub, 
 	double angleP,double angleI,double angleD, double speed, 
 	int _max_degree_avoid, double _max_dis, int _min_degree, 
-	int _max_degree, double _cut_off_ratio, double _side_dis, double _decelerator)
+	int _max_degree, double _cut_off_ratio, double _side_dis, double _decelerator,
+	int _min_degree_test, double _side_dis_test)
 {
 	KP = angleP;
 	KI = angleI;
@@ -13,11 +14,13 @@ SensorNode::SensorNode(ros::Publisher pub,ros::Publisher frontpub,
 	pubMessage = pub;
 	pubFrontMsg = frontpub;
 	min_degree = _min_degree;
+	min_degree_test = _min_degree_test;
 	max_degree = _max_degree;
 	max_degree_avoid = _max_degree_avoid;
 	max_dis = _max_dis;
 	cut_off_ratio = _cut_off_ratio;
 	side_dis = _side_dis;
+	side_dis_test = _side_dis_test;
 	decelerator = _decelerator;
 	state = 0;
 }
@@ -43,6 +46,12 @@ void SensorNode::stateCallback(const std_msgs::UInt8::ConstPtr& msg)
         state = msg->data;
 }
 
+void SensorNode::speedCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+        //ROS_INFO("stateCallBack called");
+        robotSpeed = msg->linear.x;
+}
+
 //Subscriber
 void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
@@ -51,14 +60,15 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	size = msg->ranges.size(); 
 	ROS_INFO("size = %d",size);
 	int min_index = size / 360 * min_degree;
+	int min_index_test = size / 360 * min_degree_test;
 	int max_index = size / 360 * max_degree;
 	int max_index_avoid = size /360 * max_degree_avoid;
 	
 	//This cycle goes through array and finds minimum on the left and right
-	distMinLeft = minDisLeft(min_index, max_index, msg);
-	distMinRight = minDisRight(min_index, max_index, msg);
-	distMinLeftAvoid = minDisLeft(min_index, max_index_avoid, msg);
-	distMinRightAvoid = minDisRight(min_index, max_index_avoid, msg);
+	distMinLeft = minDisLeft(min_index_test, max_index, msg);
+	distMinRight = minDisRight(min_index_test, max_index, msg);
+	distMinLeftAvoid = minDisLeft(min_index_test, max_index_avoid, msg);
+	distMinRightAvoid = minDisRight(min_index_test, max_index_avoid, msg);
 	distMinLeft_f = minDisLeft(0,min_index, msg);
 	distMinRight_f = minDisRight(0,min_index, msg);
 
@@ -84,6 +94,10 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
             distMinLeftAvoid = side_dis;
         else if (state == 4)
             distMinRightAvoid = side_dis;
+        else if (state == 5)
+        	distMinLeftAvoid = side_dis_test;
+        else if (state == 6)
+        	distMinRightAvoid = side_dis_test;
              
 	double angle = 0;
 
@@ -104,10 +118,6 @@ void SensorNode::messageCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 	
 	ROS_INFO("angle = %f",angle);
 	double v = robotSpeed;
-	if (state == 5)
-		v = robotSpeed - decelerator;
-	else
-		v = robotSpeed;
 
 	ROS_INFO("v = %f",v);
 	publishTwist(v,angle);
