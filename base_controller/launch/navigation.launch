@@ -14,14 +14,14 @@
 	<include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/> -->
 	
   <!--  ************** Localization ***************  -->
-  <include file="$(find base_controller)/launch/gmapping.launch" />
+  <!-- <include file="$(find base_controller)/launch/gmapping.launch" /> -->
 
   <!--  ************** Navigation ***************  -->
-<!--   <include file="$(find base_controller)/launch/move_base.launch" /> -->
+  <include file="$(find base_controller)/launch/move_base.launch" />
 
 
 	<!--  ****** Maps *****  -->
-<!-- 	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find teb_local_planner_tutorials)/maps/maze.yaml" output="screen">
     <param name="frame_id" value="map"/>
 	</node>
 
@@ -31,7 +31,7 @@
 		  <param name="initial_pose_y"            value="2"/>
 		  <param name="initial_pose_a"            value="0"/>
 	</node>
- -->
+
 	<!--  **************** Visualisation ****************  -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find base_controller)/navigation.rviz"/>
 

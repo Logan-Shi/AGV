@@ -32,38 +32,18 @@ class assigner():
                            'PARKTWO'  : 9,
                            'GORIGHT'  : 10,
                            'GOLEFT'   : 11}
-        self.sim = 0 # 1 as sim
-        self.indicator = 1 # 1 as left
-        self.lightStatusMsg = 2 # 0 as stop, 1 as right
-        self.parkMsg = 2 # 1 as spot one, 2 as spot two
-        self.sideWayClearWindow = 0
-        self.state = 0
-
+        self.sim = 0 # 0 as in real, 1 as in sim
+        self.indicator = 1 # 0 as right, 1 as left
         if self.sim:
-            self.start_turn_pose = Pose(Point(1.6,0,0),Quaternion(0,0,0,1)) 
-            self.left_turn_pose = Pose(Point(0.69,-0.3,0),Quaternion(0,0,0.5287,0.8488))
-            self.right_turn_pose = Pose(Point(0.69,0.3,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(-4.9,-0.9,0),Quaternion(0,0,-0.4,0.90))
-            self.exit_right_pose = Pose(Point(-4.9,0.9,0),Quaternion(0,0,0.4,0.90))
-            self.exit_turn_pose = Pose(Point(-5.3,0,0),Quaternion(0,0,0,1))
-            self.straight_lane_pose = Pose(Point(-4.7,-3.5,0),Quaternion(0,0,1,0))
-            self.straight_exit_pose = Pose(Point(0.2,-3.5,0),Quaternion(0,0,1,0))
-            self.park_one_pose = Pose(Point(1.93,-1.95,0),Quaternion(0,0,0.7,0.7))
-            self.park_two_pose = Pose(Point(3,-1.95,0),Quaternion(0,0,0.7,0.7))
+            self.lightStatusMsg = 1 # 0 as stop, 1 as right
         else:
-            self.start_turn_pose = Pose(Point(1.7,0.0,0),Quaternion(0,0,0.04,1)) 
-            self.left_turn_pose = Pose(Point(2.5,0.08,0),Quaternion(0,0,0.59,0.8))
-            self.right_turn_pose = Pose(Point(2.5,-0.1,0),Quaternion(0,0,-0.5287,0.8488))
-            self.exit_left_pose = Pose(Point(4.8,-0.0,0),Quaternion(0,0,-0.52,0.85))
-            self.exit_right_pose = Pose(Point(4.8,0,0),Quaternion(0,0,-0.56,0.83))
-            self.exit_turn_pose = Pose(Point(5.5,0.0,0),Quaternion(0,0,0,1))
-            self.straight_lane_pose = Pose(Point(15,1.3,0),Quaternion(0,0,1,0))
-            self.straight_exit_pose = Pose(Point(21,1.2,0),Quaternion(0,0,1,0))
-            self.park_one_pose = Pose(Point(1,4,0),Quaternion(0,0,1,0))
-            self.park_two_pose = Pose(Point(1,2,0),Quaternion(0,0,1,0))
-            self.park_one = Pose(Point(2.57,1.27,0),Quaternion(0,0,1,0))
-            self.park_two = Pose(Point(2,1.27,0),Quaternion(0,0,1,0))
-            self.exit_pose = Pose(Point(0,0,0),Quaternion(0,0,1,0))
+            self.lightStatusMsg = 0
+        self.parkMsg = 1 # 1 as spot one, 2 as spot two
+        self.sideWayClearWindow = 0
+        if self.sim:
+            self.state = 5
+        else:
+            self.state = 0
 
         self.flag_list=[0,0]
         self.flag_list_laser=[]
@@ -79,6 +59,7 @@ class assigner():
 
         self.sideWayClearCnt = 0
         self.cnt = 0
+        self.exit_cnt = 0
         self.rightClearMsg = 0
         self.leftClearMsg = 0
         self.isFrontMsg = 0
@@ -88,33 +69,21 @@ class assigner():
         self.startParkMsg = 0
         self.no_signal_bufsize = 0
 
-    def servoCallback(self,msg):
-        turn_reference = 0.01
+    # def servoCallback(self,msg):
+    #     turn_reference = 0.01
         
-        if (msg.angular.z > turn_reference):
-            self.headingMsg = 'left'
-        elif (msg.angular.z < - turn_reference):
-            self.headingMsg = 'right'
-        else:
-            self.headingMsg = 'straight'
+    #     if (msg.angular.z > turn_reference):
+    #         self.headingMsg = 'left'
+    #     elif (msg.angular.z < - turn_reference):
+    #         self.headingMsg = 'right'
+    #     else:
+    #         self.headingMsg = 'straight'
             
     def laserDataCallback(self,msg):
-        frontDisFilterSize = 2
         frontDis = min(msg.linear.x, msg.linear.y)
-        self.flag_list_laser.append(frontDis)
-        if len(self.flag_list_laser) > 10:
-            self.flag_list_laser = self.flag_list_laser[5:]
 
-        flag_list_reverse = list(reversed(self.flag_list_laser))
-        flag_list_front = flag_list_reverse[0:frontDisFilterSize]
-
-        sums = 0 
-        for i in range(len(flag_list_front)):
-            sums += flag_list_front[i]
-        frontDis = sums/len(flag_list_front)
-
-        parkingStopDis = 0.55
-        dynamicStopDis = 0.8
+        parkingStopDis = 0.54
+        dynamicStopDis = 0.5
         
         if frontDis < parkingStopDis: 
             self.isFrontMsg = 2 # less than parkingStopDis
@@ -124,7 +93,7 @@ class assigner():
             self.isFrontMsg = 0 # not gonna stop
         
         parkDis = 1.3
-        turnEnterDis = 0.52
+        turnEnterDis = 0.50
         sideWayClearDis = 0.6
         sideWayFurtherClearDis = 1.0
         
@@ -175,6 +144,7 @@ class assigner():
             max_pos = count_num_park.index(max(count_num_park))
         flag_park = flag_list_park[max_pos]
         
+        
         if flag_list_park[0] == flag_list_park[1]:
             flag_park_indi = flag_list_park[0]
         else:
@@ -195,8 +165,10 @@ class assigner():
             rospy.loginfo('exit double turn')
             if flag_park_indi == 5:
                 self.straightflag = 1
+                rospy.loginfo('hilens saw spot one')
             elif flag_park_indi == 6:
                 self.straightflag = 1
+                rospy.loginfo('hilens saw spot two')
             else:
                 self.straightflag = 0
         
@@ -209,12 +181,50 @@ class assigner():
                 self.parkMsg = 2
                 rospy.loginfo('hilens told me to park at spot two')
 
+    def sendGoal(self,pose):
+        self.client.wait_for_server()
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose = pose
+
+        self.client.send_goal(goal)
+        self.stop()
+
+        return self.checkGoalStatus()
+            
+    def checkGoalStatus(self):
+        if not self.client.wait_for_result(rospy.Duration(300)):
+            rospy.loginfo("Timed out to achieve goal!")
+            return 2
+        else:
+            state = self.client.get_state()
+            if self.goal_states[state] == 'SUCCEEDED': 
+                rospy.loginfo("Goal reached!")
+                return 0
+            else:
+                rospy.loginfo("Goal failed:" + str(self.goal_states[state]))
+                return 1
+
+    def updatePose(self):
+        self.map_base_link_tf_listener.waitForTransform('/base_link','/map',rospy.Time(), rospy.Duration(0.5))
+        (trans,rot) = self.map_base_link_tf_listener.lookupTransform('/map','/base_link',rospy.Time(0))
+        self.pose.position.x = trans[0]
+        self.pose.position.y = trans[1]
+        self.pose.position.z = trans[2]
+        self.pose.orientation.x = rot[0]
+        self.pose.orientation.y = rot[1]
+        self.pose.orientation.z = rot[2]
+        self.pose.orientation.w = rot[3]
+        rospy.loginfo('current position = ' + str(self.pose.position.x) + ', ' + str(self.pose.position.y))
+
     def showState(self):
         rospy.loginfo("state = " + str(self.state))
 
     def waitforLight(self):
         if self.state == self.car_states['LIGHT']:
-            self.alterVel(0.9)
+            self.alterVel(0.7)
             lightStatus = self.lightStatusMsg
             if lightStatus == 0:
                 rospy.loginfo('waiting for light signal...')
@@ -243,7 +253,6 @@ class assigner():
         if self.state == self.car_states['GORIGHT']:
             self.indicator = 0
             self.alterVel(0.9)
-            #self.decelCmd()
             if self.turnClear:
                 self.state = self.car_states['RIGHT']
             else:
@@ -253,7 +262,6 @@ class assigner():
         if self.state == self.car_states['GOLEFT']:
             self.indicator = 1
             self.alterVel(0.9)
-            #self.decelCmd()
             if self.turnClear:
                 self.state = self.car_states['LEFT']
             else:
@@ -296,42 +304,45 @@ class assigner():
     def exitTurn(self):
         if self.state == self.car_states['EXITTURN']:
             self.alterVel(0.9)
+            self.exit_cnt = 0
             rospy.loginfo('exiting turn')
             rospy.loginfo('sideWayClearCnt ' + str(self.sideWayClearCnt))
             if self.indicator:
+                self.leftCmd()
                 if self.rightClearMsg == 2: # and (not self.headingMsg == 'left'):
-                    rospy.loginfo('heading' + str(self.headingMsg))
+                    #rospy.loginfo('heading' + str(self.headingMsg))
                     rospy.loginfo('right clear, more than sideWayFurtherClearDis')
                     self.sideWayClearCnt += 1
-                    self.leftCmd()
+                    
                 if (self.sideWayClearCnt > self.sideWayClearWindow) and (self.rightClearMsg == 0):
                     rospy.loginfo('exit!!!!')
                     self.state = self.car_states['STRAIGHT']
             else:
+                self.rightCmd()
                 if self.leftClearMsg == 2: # and (not self.headingMsg == 'right'):
-                    rospy.loginfo('heading' + str(self.headingMsg))
+                    #rospy.loginfo('heading' + str(self.headingMsg))
                     rospy.loginfo('left clear, more than sideWayFurtherClearDis')
                     self.sideWayClearCnt += 1
-                    self.rightCmd()
+                    
                 if (self.sideWayClearCnt > self.sideWayClearWindow) and (self.leftClearMsg == 0):
                     rospy.loginfo('exit!!!!')
                     self.state = self.car_states['STRAIGHT']
 
     def goStraight(self):
         if self.state == self.car_states['STRAIGHT']:
-            self.alterVel(0.9)
+            self.alterVel(0.7)
             if (not self.leftClearMsg) and (not self.rightClearMsg):
                 self.leftCmdTest()
-                #self.cnt += 1
-                #rospy.loginfo('side way blocked for ' + str(self.cnt))
-            if self.straightflag and (not self.isFrontMsg):
+                self.exit_cnt += 1
+                rospy.loginfo('side way blocked for straight' + str(self.exit_cnt))
+            if (self.exit_cnt > 270) and self.straightflag and (not self.isFrontMsg):
                 self.state = self.car_states['DYNAMIC']
             else:
                 self.state = self.car_states['STRAIGHT']
 
     def waitforDynamicObj(self):
         if self.state == self.car_states['DYNAMIC']:
-            self.alterVel(0.9)
+            self.alterVel(1.0)
             self.middleCmd() 
             rospy.loginfo('waiting for dynamic obj')
             isFront = self.isFrontMsg
@@ -340,7 +351,7 @@ class assigner():
                 self.stop()
                 self.state = self.car_states['DYNAMIC']
             else:
-                if self.leftClearMsg == 2:
+                if self.leftClearMsg:
                     rospy.loginfo('pedestrian crossing passed!')
                     self.state = self.car_states['PARK']
                 else:

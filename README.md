@@ -5,34 +5,100 @@ ackermann autonomous driving
 
 ```
 sudo apt-get install ros-kinetic-ros-controllers ros-kinetic-gazebo-ros-control ros-kinetic-effort-* ros-kinetic-joint-state-*
-may need CUDA support or just use my compiles lib
 ```
 
 ## Bringup
 
-* simulator  
-`roslaunch racecar_simulator simulate.launch`
+* stage sim
+`roslaunch teb_local_planner_tutorials robot_carlike_in_stage.launch`
 
-* gazebo  
+* gazebo sim
 `roslaunch racecar_gazebo racecar.launch`
 
 * keyboard teleop  
-`rosrun racecar_control keyboard_teleop.py`
+`roslaunch base_controller teleop.launch`
+
+* driver
+`roslaunch base_controller amcl.launch`
 
 * controller  
-`roslaunch ta_lab3 example.launch`  
-Fit a line from the wall and try to keep certain distance from it. Easily run into hard corners.
+`roslaunch sensor_node sensor_node.launch`
 
-`roslaunch ta_lab4 hue.launch\visual_servo.launch`  
-Seems to detect a cone using vision, but won't move
+* planner
+`roslaunch base_controller assigner.launch`
 
-`roslaunch ta_lab5 localize.launch`  
-localize bot, input raw /odom, and output /pf/pose/odom
+* hilens
+`rosrun base_controller hilens_display.py`
 
-`roslaunch ta_lab5 slime.launch`  
-hector_trajectory_server: Get the traveled trajectory
+* mapping
+`rosrun gmapping slam_gmapping`
+`roslaunch cartographer_ros demo_rplidar.launch`
 
-## Match Log
+* localization and planning
+`roslaunch base_controller navigation.launch`
 
-done turning with last year node, not reassuring enough but not to shabby.
-try to run a lap
+* record bag
+`roslaunch base_controller bag.launch`
+
+## Important Directories Explained
+
+.
+├── base_controller
+│   ├── launch
+│   │   ├── amcl.launch
+│   │   ├── assigner.launch------------------------bring up car and lidar
+│   │   ├── bag.launch-----------------------------record bag
+│   │   ├── base_controller.launch-----------------bring up car
+│   │   ├── cmd_vel_mux.launch
+│   │   ├── gmapping.launch
+│   │   ├── laser_filter.launch
+│   │   ├── move_base.launch
+│   │   ├── navigation.launch----------------------localization and planning
+│   │   └── teleop.launch
+│   ├── param
+│   │   ├── cmd_vel_mux_param.yaml
+│   │   ├── costmap_converter_params.yaml
+│   │   ├── laser_config.yaml
+│   │   └── velocity_smoother_param.yaml
+│   └── scripts
+│       ├── assigner.py----------------------------planner
+│       ├── avoid.py
+│       ├── base_controller.py---------------------driver
+│       └── hilens_display.py----------------------hilens
+├── laser_filters----------------------------------laser filter node
+├── racecar----------------------------------------MIT-racecar setup
+├── racecar_gazebo---------------------------------gazebo simulation
+├── racecar_simulator------------------------------MIT-racecar simulator
+├── range_libc-------------------------------------lib for ray-tracing
+├── README.md
+├── rplidar_ros------------------------------------rplidar node
+├── sensor_node------------------------------------controller
+│   ├── launch
+│   │   └── sensor_node.launch
+│   └── src
+│       ├── sensor_main.cpp
+│       ├── sensornode.cpp
+│       └── sensornode.h
+├── socket-----------------------------------------hilens demo
+│   ├── hilens_socket.py
+│   └── tx2_socket.py
+├── TA_example_labs--------------------------------some reference examples
+├── teb_local_planner_tutorials--------------------teb planner configuration
+│   ├── cfg
+│   │   ├── amcl_params.yaml
+│   │   └── carlike--------------------------------teb planner params
+│   │       ├── costmap_common_params.yaml
+│   │       ├── global_costmap_params.yaml
+│   │       ├── local_costmap_params.yaml
+│   │       └── teb_local_planner_params.yaml
+│   ├── launch
+│   │   └── robot_carlike_in_stage.launch----------simulation
+│   ├── maps---------------------------------------map files
+│   └── stage
+│       ├── experiment_carlike.world---------------match world
+│       ├── maze_carlike.world---------------------maze world
+│       └── robots
+│           ├── carlike_robot.inc------------------car
+│           └── obstacle.inc-----------------------obstacle
+├── teleop
+└── vesc-------------------------------------------odom and cmd_vel_mux reference
