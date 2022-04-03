@@ -1,7 +1,7 @@
 # AGV
 ackermann autonomous driving
 
-## Depency
+## Dependency
 
 ```
 sudo apt-get install ros-kinetic-ros-controllers ros-kinetic-gazebo-ros-control ros-kinetic-effort-* ros-kinetic-joint-state-*
