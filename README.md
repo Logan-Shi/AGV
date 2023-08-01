@@ -12,6 +12,8 @@ sudo apt-get install ros-kinetic-ros-controllers ros-kinetic-gazebo-ros-control 
 * stage sim
 `roslaunch teb_local_planner_tutorials robot_carlike_in_stage.launch`
 
+![sim](sim.gif)
+
 * gazebo sim
 `roslaunch racecar_gazebo racecar.launch`
 
